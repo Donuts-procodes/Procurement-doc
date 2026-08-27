@@ -1,0 +1,40 @@
+{
+  "name": "gdocs-rag-clone",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5173",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 5173"
+  },
+  "dependencies": {
+    "@tiptap/extension-color": "^3.29.2",
+    "@tiptap/extension-image": "^3.29.2",
+    "@tiptap/extension-subscript": "^3.29.2",
+    "@tiptap/extension-superscript": "^3.29.2",
+    "@tiptap/extension-table": "^3.29.2",
+    "@tiptap/extension-table-cell": "^3.29.2",
+    "@tiptap/extension-table-header": "^3.29.2",
+    "@tiptap/extension-table-row": "^3.29.2",
+    "@tiptap/extension-text-align": "^3.29.2",
+    "@tiptap/extension-text-style": "^3.29.2",
+    "@tiptap/extension-underline": "^3.29.2",
+    "@tiptap/pm": "^3.29.2",
+    "@tiptap/react": "^3.29.2",
+    "@tiptap/starter-kit": "^3.29.2",
+    "axios": "^1.7.7",
+    "docx": "^9.7.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.18.2",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.5.3",
+    "vite": "^5.4.1"
+  }
+}

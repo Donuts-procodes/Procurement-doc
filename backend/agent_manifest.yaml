@@ -1,0 +1,98 @@
+name: Procurement RAG Graph Agent
+version: 1.0.0
+description: A LangGraph state machine orchestrating multiple sub-agents to classify, retrieve context, draft, verify, and stylize enterprise procurement documents based on user prompts and Knowledge Base context.
+author: Antigravity IDE
+framework: LangGraph
+
+state_schema:
+  name: ProcurementState
+  description: The central state payload passed between all agent nodes.
+  fields:
+    session_id: string
+    raw_prompt: string
+    doc_type: enum (RFP, RFQ, RFI, PURCHASE_ORDER, VENDOR_CONTRACT, SOW, VENDOR_SCORECARD)
+    template_id: string
+    kb_id: string
+    num_pages: integer
+    page_layout_size: string
+    design_config: DocumentDesignConfig
+    collected_fields: dict
+    missing_fields: list
+    pending_question: string
+    extracted_images: list[ImageAsset]
+    segments: list[DocumentSegment]
+    status: string
+
+nodes:
+  - id: manager_router
+    type: router
+    description: Initial entry point. Inspects state to route to either classifier or RAG enrichment.
+  
+  - id: doc_type_classifier
+    type: llm_agent
+    temperature: 0.1
+    description: Parses the user's raw prompt using structured LLM outputs to classify it into exactly one valid ProcurementDocType.
+
+  - id: rag_enrichment
+    type: logic_node
+    description: Computes document design theme, typography pairings, layout size, and watermarks based on inferred corporate context.
+
+  - id: fillup_agent
+    type: llm_agent
+    temperature: 0.2
+    description: Queries ChromaDB to extract mandatory fields (e.g. vendor name, budget, deadlines) from uploaded Knowledge Base PDFs and chat history. Applies enterprise defaults if missing.
+
+  - id: image_extractor_agent
+    type: sub_agent
+    description: Scans the active Knowledge Base for visual assets (diagrams/charts) and maps them to specific document sections. Generates a Mermaid architecture diagram dynamically if tech scope is detected.
+
+  - id: segment_generation
+    type: llm_agent
+    temperature: 0.3 - 0.4
+    description: The core drafting node. Iterates over template sections, running highly contextual dense vector searches against ChromaDB to generate structured TipTap JSON blocks (headings, paragraphs, bullet lists, matrix tables).
+
+  - id: verifier_agent
+    type: sub_agent
+    temperature: 0.1
+    description: Quality assurance node. Audits generated JSON for unresolved placeholders, broken tags, and malformed layouts. Surgically patches broken segments without full regeneration.
+
+  - id: layout_composer_agent
+    type: logic_node
+    description: Applies hierarchical numbering to headings, injects executive callout cards, and ensures standardized structural dividers.
+
+  - id: pagination_fit_agent
+    type: logic_node
+    description: Ensures the document precisely hits the user's requested target page count (num_pages). If too short, dynamically injects standardized appendices like "Risk Mitigation & SLA Matrix" or "Formal Execution Sign-Off".
+
+  - id: aesthetic_stylist_agent
+    type: logic_node
+    description: Final visual polish node. Enforces corporate style constraints, page borders, and watermarks before sending to frontend canvas.
+
+edges:
+  - source: manager_router
+    target: [doc_type_classifier, rag_enrichment]
+    type: conditional
+  - source: doc_type_classifier
+    target: rag_enrichment
+  - source: rag_enrichment
+    target: fillup_agent
+  - source: fillup_agent
+    target: image_extractor_agent
+  - source: image_extractor_agent
+    target: segment_generation
+  - source: segment_generation
+    target: verifier_agent
+  - source: verifier_agent
+    target: layout_composer_agent
+  - source: layout_composer_agent
+    target: pagination_fit_agent
+  - source: pagination_fit_agent
+    target: aesthetic_stylist_agent
+  - source: aesthetic_stylist_agent
+    target: END
+
+dependencies:
+  - pydantic
+  - langgraph
+  - langchain-core
+  - chromadb

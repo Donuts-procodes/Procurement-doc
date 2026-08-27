@@ -1,0 +1,1276 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Docs RAG Clone API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/session/providers": {
+      "get": {
+        "tags": [
+          "session"
+        ],
+        "summary": "List Providers",
+        "operationId": "list_providers_api_v1_session_providers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "type": "object",
+                  "title": "Response List Providers Api V1 Session Providers Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/session": {
+      "post": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Create Session",
+        "operationId": "create_session_api_v1_session_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/upload": {
+      "post": {
+        "tags": [
+          "procurement"
+        ],
+        "summary": "Upload Knowledge Files",
+        "operationId": "upload_knowledge_files_api_v1_knowledge_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_knowledge_files_api_v1_knowledge_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeUploadResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/policy-upload": {
+      "post": {
+        "tags": [
+          "procurement"
+        ],
+        "summary": "Upload Policy Files",
+        "operationId": "upload_policy_files_api_v1_knowledge_policy_upload_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_policy_files_api_v1_knowledge_policy_upload_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeUploadResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/vendor-upload": {
+      "post": {
+        "tags": [
+          "procurement"
+        ],
+        "summary": "Upload Vendor Files",
+        "operationId": "upload_vendor_files_api_v1_knowledge_vendor_upload_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_vendor_files_api_v1_knowledge_vendor_upload_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeUploadResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/clauses": {
+      "get": {
+        "tags": [
+          "procurement"
+        ],
+        "summary": "List Clauses",
+        "operationId": "list_clauses_api_v1_clauses_get",
+        "parameters": [
+          {
+            "name": "doc_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ProcurementDocType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Doc Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/document/{document_id}/status": {
+      "post": {
+        "tags": [
+          "procurement"
+        ],
+        "summary": "Update Document Status",
+        "operationId": "update_document_status_api_v1_document__document_id__status_post",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Document Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DocumentStatus"
+            }
+          },
+          {
+            "name": "actor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "Reviewer",
+              "title": "Actor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/document/{document_id}/audit-log": {
+      "get": {
+        "tags": [
+          "procurement"
+        ],
+        "summary": "Get Audit Log",
+        "operationId": "get_audit_log_api_v1_document__document_id__audit_log_get",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generate": {
+      "post": {
+        "tags": [
+          "generate"
+        ],
+        "summary": "Generate",
+        "operationId": "generate_api_v1_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InitialGenerateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generate/answer": {
+      "post": {
+        "tags": [
+          "generate"
+        ],
+        "summary": "Answer Question",
+        "operationId": "answer_question_api_v1_generate_answer_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerQuestionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generate/refine-segment": {
+      "post": {
+        "tags": [
+          "generate"
+        ],
+        "summary": "Refine Segment",
+        "operationId": "refine_segment_api_v1_generate_refine_segment_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefineSegmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generate/refine-selection": {
+      "post": {
+        "tags": [
+          "generate"
+        ],
+        "summary": "Refine Selection",
+        "operationId": "refine_selection_api_v1_generate_refine_selection_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefineSelectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "List Sessions",
+        "description": "Retrieve all saved workspace sessions in CouchDB JSON document format.",
+        "operationId": "list_sessions_api_v1_sessions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Save Session",
+        "description": "Save or update a workspace session in CouchDB-compatible JSON format.",
+        "operationId": "save_session_api_v1_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionDocPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Get Session",
+        "description": "Fetch a specific workspace session JSON document by ID.",
+        "operationId": "get_session_api_v1_sessions__session_id__get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Delete Session",
+        "description": "Delete a workspace session JSON document by ID.",
+        "operationId": "delete_session_api_v1_sessions__session_id__delete",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Api Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnswerQuestionRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "document_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Id"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "content_density": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "min",
+                  "med",
+                  "max"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Density",
+            "default": "med"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "answer"
+        ],
+        "title": "AnswerQuestionRequest"
+      },
+      "Body_upload_knowledge_files_api_v1_knowledge_upload_post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "format": "binary"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "Body_upload_knowledge_files_api_v1_knowledge_upload_post"
+      },
+      "Body_upload_policy_files_api_v1_knowledge_policy_upload_post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "format": "binary"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "Body_upload_policy_files_api_v1_knowledge_policy_upload_post"
+      },
+      "Body_upload_vendor_files_api_v1_knowledge_vendor_upload_post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "format": "binary"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "Body_upload_vendor_files_api_v1_knowledge_vendor_upload_post"
+      },
+      "DocumentStatus": {
+        "type": "string",
+        "enum": [
+          "DRAFT",
+          "UNDER_REVIEW",
+          "APPROVED",
+          "SENT"
+        ],
+        "title": "DocumentStatus"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "InitialGenerateRequest": {
+        "properties": {
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "kb_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kb Id"
+          },
+          "procurement_doc_type": {
+            "title": "Procurement Doc Type",
+            "default": "RFP"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id",
+            "default": "rfp_enterprise"
+          },
+          "num_pages": {
+            "title": "Num Pages",
+            "default": 5
+          },
+          "page_layout_size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Layout Size",
+            "default": "A4"
+          },
+          "prompt": {
+            "title": "Prompt",
+            "default": "Generate procurement proposal document"
+          },
+          "content_density": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "min",
+                  "med",
+                  "max"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Density",
+            "default": "med"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LLMProvider"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "api_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key"
+          }
+        },
+        "type": "object",
+        "title": "InitialGenerateRequest"
+      },
+      "KnowledgeFileSummary": {
+        "properties": {
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "chunk_count": {
+            "type": "integer",
+            "title": "Chunk Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "filename",
+          "chunk_count"
+        ],
+        "title": "KnowledgeFileSummary"
+      },
+      "KnowledgeUploadResponse": {
+        "properties": {
+          "kb_id": {
+            "type": "string",
+            "title": "Kb Id"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeFileSummary"
+            },
+            "type": "array",
+            "title": "Files"
+          },
+          "total_chunks": {
+            "type": "integer",
+            "title": "Total Chunks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kb_id",
+          "files",
+          "total_chunks"
+        ],
+        "title": "KnowledgeUploadResponse"
+      },
+      "LLMProvider": {
+        "type": "string",
+        "enum": [
+          "openai",
+          "gemini",
+          "anthropic"
+        ],
+        "title": "LLMProvider"
+      },
+      "ProcurementDocType": {
+        "type": "string",
+        "enum": [
+          "RFP",
+          "RFQ",
+          "RFI",
+          "PURCHASE_ORDER",
+          "VENDOR_CONTRACT",
+          "SOW",
+          "VENDOR_SCORECARD"
+        ],
+        "title": "ProcurementDocType"
+      },
+      "RefineSegmentRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "document_id": {
+            "type": "string",
+            "title": "Document Id"
+          },
+          "segment_id": {
+            "type": "string",
+            "title": "Segment Id"
+          },
+          "instruction": {
+            "type": "string",
+            "title": "Instruction"
+          },
+          "content_density": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "min",
+                  "med",
+                  "max"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Density",
+            "default": "med"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "document_id",
+          "segment_id",
+          "instruction"
+        ],
+        "title": "RefineSegmentRequest"
+      },
+      "RefineSelectionRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "selection_text": {
+            "type": "string",
+            "title": "Selection Text"
+          },
+          "instruction": {
+            "type": "string",
+            "title": "Instruction"
+          },
+          "content_density": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "min",
+                  "med",
+                  "max"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Density",
+            "default": "med"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "selection_text",
+          "instruction"
+        ],
+        "title": "RefineSelectionRequest"
+      },
+      "SessionCreateRequest": {
+        "properties": {
+          "provider": {
+            "$ref": "#/components/schemas/LLMProvider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "api_key": {
+            "type": "string",
+            "minLength": 8,
+            "title": "Api Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "model",
+          "api_key"
+        ],
+        "title": "SessionCreateRequest"
+      },
+      "SessionDocPayload": {
+        "properties": {
+          "_id": {
+            "type": "string",
+            "title": " Id",
+            "default": ""
+          },
+          "id_number": {
+            "type": "integer",
+            "title": "Id Number",
+            "default": 101
+          },
+          "display_id": {
+            "type": "string",
+            "title": "Display Id",
+            "default": "#101"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "document_id": {
+            "type": "string",
+            "title": "Document Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "kb_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kb Id"
+          },
+          "kb_files": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Kb Files"
+          },
+          "procurement_doc_type": {
+            "type": "string",
+            "title": "Procurement Doc Type",
+            "default": "RFP"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt",
+            "default": ""
+          },
+          "segments": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Segments"
+          },
+          "prompt_log": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Prompt Log"
+          },
+          "style_config": {
+            "type": "object",
+            "title": "Style Config"
+          },
+          "page_layout_size": {
+            "type": "string",
+            "title": "Page Layout Size",
+            "default": "A4"
+          },
+          "doc_status": {
+            "type": "string",
+            "title": "Doc Status",
+            "default": "DRAFT"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "document_id",
+          "title",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SessionDocPayload"
+      },
+      "SessionResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/LLMProvider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "provider",
+          "model"
+        ],
+        "title": "SessionResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "id": "agent_procurement_rag_b687e14a",
+  "name": "Procurement Graph AI",
+  "template": {
+    "id": "tpl_proc_5a21_908b",
+    "name": "Enterprise Procurement Generator",
+    "slug": "enterprise-procurement-generator",
+    "description": "Automate drafting of highly structured enterprise procurement documents (RFPs, RFQs, SOWs). Handles context retrieval, table generation, and compliance checks.",
+    "shortDesc": "Automated drafting of RFI, RFP, and SOW documents",
+    "tags": [
+      "Procurement",
+      "Document Generation",
+      "RAG",
+      "Enterprise Compliance"
+    ],
+    "systemPrompt": "You are the {agentName}, an enterprise procurement assistant.\n\nROLE\nYou help organizations draft, format, and stylize formal procurement documents. You have access to a vector database containing corporate guidelines, previous proposals, and vendor specs. Your goal is to draft comprehensive, legally compliant documents based on the user's brief.\n\nPERSONALITY\n- Professional and formal — the output must be ready for executive review\n- Highly structured — you use Markdown, tables, and hierarchical headings to organize information\n- Context-aware — you heavily rely on the provided Knowledge Base over hallucinating details\n\nHOW TO HANDLE GENERATION\n\nStep 1 — Classify the Document:\nDetermine whether the user needs an RFP, RFQ, RFI, PURCHASE_ORDER, VENDOR_CONTRACT, SOW, or VENDOR_SCORECARD.\n\nStep 2 — Identify Missing Metadata:\nExtract mandatory fields for the document type (e.g. Budget, Deadline, Vendor Name). If missing from the user prompt or Knowledge Base, apply standard enterprise defaults.\n\nStep 3 — Retrieve Context (RAG):\nQuery the Vector DB to find relevant scopes, corporate identity guidelines, and boilerplate clauses.\n\nStep 4 — Draft Segments:\nFor each section in the chosen template, compose structured TipTap JSON segments. Ensure there are no empty pages. Insert relevant tables, payment schedules, and formatting.\n\nStep 5 — Verify and Paginate:\nAudit the drafted content for unresolved bracketed placeholders (e.g., [Insert Date]). Fix broken layout tags. If the document is shorter than the requested target page length, inject standard appendices like 'Risk Mitigation & SLA Matrix'.",
+    "isActive": true,
+    "createdAt": "2026-08-25T16:00:00.000Z",
+    "updatedAt": "2026-08-25T17:05:00.000Z"
+  },
+  "guardrail": {
+    "id": "grd_compliance_check",
+    "blockedWords": [
+      "draft",
+      "placeholder"
+    ],
+    "avoidRules": [
+      "Do not invent legal clauses that contradict the uploaded corporate Knowledge Base.",
+      "Do not leave bracketed placeholders like [Vendor Name] in the final output.",
+      "Do not generate consumer privacy policies instead of enterprise software terms."
+    ],
+    "businessRules": "All intellectual property rights must default to 'work-made-for-hire' unless overridden by context.",
+    "humanHandoffEnabled": false,
+    "handoffTriggers": null,
+    "handoffCondition": "",
+    "conversationMemory": true,
+    "conversationLogging": true,
+    "agentId": "agent_procurement_rag_b687e14a",
+    "createdAt": "2026-08-25T16:00:00.000Z",
+    "updatedAt": "2026-08-25T17:00:00.000Z"
+  },
+  "knowledgeSources": [
+    {
+      "id": "ks_local_pdfs",
+      "type": "file_upload",
+      "name": "Local File Uploads (PDF/DOCX)",
+      "content": null,
+      "fileUrl": null,
+      "fileSize": null,
+      "mimeType": "application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "isIndexed": true,
+      "scanStatus": "approved",
+      "scanMessage": null,
+      "sensitivityFlags": null,
+      "virusScanStatus": "completed",
+      "crawlStatus": "completed",
+      "crawlError": null,
+      "crawledPages": null,
+      "extractedPdfUrl": null,
+      "urlProvider": "local_storage",
+      "agentId": "agent_procurement_rag_b687e14a",
+      "createdAt": "2026-08-25T16:00:00.000Z",
+      "updatedAt": "2026-08-25T16:00:00.000Z"
+    }
+  ],
+  "vectorDatabase": "chromadb",
+  "chromaDatabasePath": "./chroma_data",
+  "chromaCollectionFormat": "kb_{collection_type}_{kb_id}",
+  "agents": [
+    {
+      "id": "doc_type_classifier",
+      "name": "Document Type Classifier",
+      "systemPrompt": "Classify the following user prompt into exactly one of these procurement document types: \nRFP, RFQ, RFI, PURCHASE_ORDER, VENDOR_CONTRACT, SOW, VENDOR_SCORECARD.\n\nPrompt: {state.raw_prompt}"
+    },
+    {
+      "id": "fillup_agent",
+      "name": "Information Extraction Agent",
+      "systemPrompt": "Determine if details for '{field_human}' are present in the user prompt, uploaded document context, OR previous session chat history.\n\nUser Prompt:\n{state.raw_prompt}\n\nSession Chat History:\n{session_history}\n\nUploaded Knowledge Base Context:\n{kb_text if kb_text else 'None'}\n\nReturn extracted=True if present or inferable, plus a concise summary."
+    },
+    {
+      "id": "segment_generation",
+      "name": "Segment Generation Agent",
+      "systemPrompt": "Draft section '{sec.title}' for an enterprise procurement {doc_type.value}.\nGuidance: {sec.guidance}\n\nCRITICAL RULES:\n2. ADHERE TO TEMPLATE GUIDANCE: Strictly follow the structure, tone, and logic specified for this template. Do not hallucinate unrelated features.\n3. HIERARCHICAL HEADINGS (H2, H3): Structure paragraphs with clear sub-headings using '## ' for H2 sub-sections and '### ' for H3 subsection details.\n4. FULL PAGE DENSITY (NO HALF-EMPTY PAGES): Write comprehensive, in-depth technical & legal prose (3 to 5 rich paragraphs per section) with bullet points and structured evaluation tables so every page card is fully filled from top to bottom.\n5. FORMATTED BULLETS & TABLES: Provide structured bullet lists for deliverables and requirements, and tables for timelines, budgets, and compliance metrics.\n6. INJECT IMAGES ANYWHERE: To insert an available image anywhere within the document text, return the exact tag [IMAGE: <image_id>] as a standalone paragraph.\nAvailable images:\n{extracted_images_list}\n\nCombined Context:\n{combined_context}\n\nKnowledge Base Context:\n{context_block}"
+    },
+    {
+      "id": "verifier_agent",
+      "name": "Quality Assurance Verifier",
+      "systemPrompt": "Review this TipTap JSON document segment for the following issues:\n1. Unresolved bracketed placeholders (e.g., [Insert Date], [Vendor Name]). Replace them with realistic inferred values.\n2. Broken or malformed [IMAGE: xxx] tags.\n3. Empty or malformed table cells.\nIf issues exist, set is_valid to false and provide the FULL, CORRECTED JSON string in fixed_json_string.\nIf no issues, set is_valid to true.\n\nSegment JSON:\n{content_str}"
+    }
+  ],
+  "backendFunctions": [
+    {
+      "name": "chroma_dense_search",
+      "module": "app.services.vector_store.KnowledgeBase.query",
+      "description": "Executes dense similarity searches against the ChromaDB vector collections to retrieve highly relevant corporate context chunks."
+    },
+    {
+      "name": "pdf_asset_extraction",
+      "module": "app.services.document_parser.extract_images_from_pdf",
+      "description": "Scrapes embedded diagrams, logos, and high-fidelity visual assets from user-uploaded PDFs, converting them directly to Base64 for agent insertion."
+    },
+    {
+      "name": "table_math_compiler",
+      "module": "app.services.structured_tables.compute_line_items",
+      "description": "Performs deterministic mathematical validations on LLM-generated line items, calculating subtotals, tax rates, and grand totals to prevent AI math hallucinations."
+    },
+    {
+      "name": "tiptap_canvas_compiler",
+      "module": "app.services.tiptap_engine.build_tiptap_segment_doc",
+      "description": "Translates unstructured LLM prose into highly rigid TipTap JSON structures so the React frontend can render it beautifully as an interactive rich-text document."
+    }
+  ],
+  "environmentVariables": [
+    {
+      "name": "OPENAI_API_KEY",
+      "required": true,
+      "description": "Required for the core GPT-4o LLM nodes in the LangGraph workflow."
+    },
+    {
+      "name": "ANTHROPIC_API_KEY",
+      "required": false,
+      "description": "Optional fallback provider for Claude models."
+    },
+    {
+      "name": "CORS_ORIGINS",
+      "required": false,
+      "default": "http://localhost:5173",
+      "description": "Allowed origins to accept requests from the React frontend."
+    }
+  ],
+  "llmConfigurations": [
+    {
+      "provider": "openai",
+      "model": "gpt-4o",
+      "defaultTemperature": 0.2,
+      "roles": ["classifier", "extractor", "generator", "verifier"]
+    }
+  ],
+  "apiEndpoints": [
+    {
+      "path": "/api/v1/generate",
+      "method": "POST",
+      "description": "Triggers the main LangGraph agent workflow."
+    },
+    {
+      "path": "/api/v1/knowledge/upload",
+      "method": "POST",
+      "description": "Uploads, extracts, chunks, and stores PDFs/DOCX files into ChromaDB."
+    },
+    {
+      "path": "/api/v1/session",
+      "method": "POST",
+      "description": "Initializes a new procurement generation session."
+    }
+  ]
+}
