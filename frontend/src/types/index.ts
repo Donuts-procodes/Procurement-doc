@@ -327,6 +327,91 @@ export interface GenerateResponse {
   page_layout_size?: PageLayoutSize;
   lexical_state?: Record<string, unknown>;
   page_titles?: string[];
+  research_findings?: Array<{
+    finding_id: string;
+    statement: string;
+    extracted_quote?: string;
+    source_title?: string;
+    source_url?: string;
+    publication_date?: string;
+    reliability_score?: number;
+  }>;
+  audit_report?: {
+    status?: "APPROVED" | "REJECTED";
+    conflicts?: string[];
+    citations_mapped?: string[];
+    audit_notes?: string;
+  };
+  document_audit_report?: {
+    score?: number;
+    passed?: boolean;
+    critical_defects?: string[];
+    warnings?: string[];
+    recommendations?: string[];
+  };
+  sandbox_computations?: Record<string, unknown>;
+}
+
+export type StreamEvent =
+  | { type: "agent_thought"; step: string; status: "running" | "completed" }
+  | { type: "tool_execution"; tool_name: string; input: Record<string, unknown>; output?: string }
+  | { type: "canvas_patch"; operation: "insert_node" | "replace_range" | "append"; target_id?: string; content: any }
+  | {
+      type: "checkpoint";
+      version_id: string;
+      timestamp: number;
+      document_id?: string;
+      segments?: DocumentSegment[];
+      page_titles?: string[];
+      style_config?: DocumentStyleConfig;
+      page_layout_size?: PageLayoutSize;
+      missing_fields?: string[];
+    };
+
+export interface DocumentCheckpoint {
+  version_id: string;
+  timestamp: number;
+  label: string;
+  segments: DocumentSegment[];
+  lexical_state?: Record<string, unknown>;
+  trigger: "generation" | "user_typing" | "inline_ai" | "manual";
+}
+
+export interface TargetedEditParams {
+  prompt: string;
+  target_node_id: string;
+  selection_text: string;
+  context_window: string;
+}
+
+export interface GuidedParameters {
+  buyer_name?: string;
+  vendor_name?: string;
+  budget_estimate?: string;
+  delivery_timeline?: string;
+  compliance_frameworks?: string[];
+  primary_tech?: string;
+  sla_target?: string;
+}
+
+export interface PreflightSectionOutline {
+  index: number;
+  title: string;
+  section_type: string;
+  guidance: string;
+}
+
+export interface PreflightBlueprintResponse {
+  recommended_template_id: string;
+  recommended_doc_type: ProcurementDocType;
+  template_title: string;
+  template_icon: string;
+  confidence_score: number;
+  match_reason: string;
+  recommended_num_pages: number;
+  guided_params: GuidedParameters;
+  outline_sections: PreflightSectionOutline[];
+  detected_keywords: string[];
 }
 
 export type PageLayoutSize = "A4" | "LETTER" | "A3" | "LEGAL";

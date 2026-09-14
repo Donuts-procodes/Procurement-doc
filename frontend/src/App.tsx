@@ -7,6 +7,8 @@ import { PromptPanel } from "./components/panel/PromptPanel";
 import { WizardContainer } from "./components/wizard/WizardContainer";
 import { SavedSessionsModal } from "./components/layout/SavedSessionsModal";
 import { AiConfigModal } from "./components/layout/AiConfigModal";
+import { AgentExecutionStream } from "./components/stream/AgentExecutionStream";
+import type { StreamEvent } from "./types";
 import { useWizardStore } from "./state/wizardStore";
 import { useState } from "react";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
@@ -18,6 +20,9 @@ export default function App() {
   const [isAiConfigOpen, setIsAiConfigOpen] = useState(false);
   const [isLeftCollapsed, setIsLeftCollapsed] = useState(false);
   const [isRightCollapsed, setIsRightCollapsed] = useState(false);
+  const [leftPaneMode, setLeftPaneMode] = useState<"stream" | "config">("stream");
+  const [streamEvents, setStreamEvents] = useState<StreamEvent[]>([]);
+  const [isStreaming, setIsStreaming] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -226,11 +231,111 @@ export default function App() {
                 <div
                   className="three-pane-layout"
                   style={{
-                    gridTemplateColumns: `${isLeftCollapsed ? "44px" : "260px"} 1fr ${isRightCollapsed ? "44px" : "320px"}`,
+                    gridTemplateColumns: `${isLeftCollapsed ? "44px" : "320px"} 1fr ${isRightCollapsed ? "44px" : "320px"}`,
                     transition: "grid-template-columns 0.25s ease",
                   }}
                 >
-                  <ConfigPanel isCollapsed={isLeftCollapsed} onToggleCollapse={() => setIsLeftCollapsed(!isLeftCollapsed)} />
+                  {/* Left Pane: Switchable between Agent Execution Stream and Structure/Config */}
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      height: "100%",
+                      overflow: "hidden",
+                      borderRight: "1px solid #e2e8f0",
+                    }}
+                  >
+                    {!isLeftCollapsed && (
+                      <div
+                        style={{
+                          display: "flex",
+                          backgroundColor: "#0f172a",
+                          borderBottom: "1px solid #1e293b",
+                          padding: "4px 8px",
+                          gap: "4px",
+                        }}
+                      >
+                        <button
+                          style={{
+                            flex: 1,
+                            padding: "4px 8px",
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            borderRadius: "4px",
+                            border: "none",
+                            cursor: "pointer",
+                            backgroundColor: leftPaneMode === "stream" ? "#0284c7" : "transparent",
+                            color: leftPaneMode === "stream" ? "#ffffff" : "#94a3b8",
+                          }}
+                          onClick={() => setLeftPaneMode("stream")}
+                        >
+                          ⚡ Agent Stream
+                        </button>
+                        <button
+                          style={{
+                            flex: 1,
+                            padding: "4px 8px",
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            borderRadius: "4px",
+                            border: "none",
+                            cursor: "pointer",
+                            backgroundColor: leftPaneMode === "config" ? "#0284c7" : "transparent",
+                            color: leftPaneMode === "config" ? "#ffffff" : "#94a3b8",
+                          }}
+                          onClick={() => setLeftPaneMode("config")}
+                        >
+                          📑 Structure
+                        </button>
+                        <button
+                          onClick={() => setIsLeftCollapsed(true)}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            color: "#94a3b8",
+                            cursor: "pointer",
+                            padding: "2px 6px",
+                            fontSize: "12px",
+                          }}
+                          title="Collapse Left Pane"
+                        >
+                          ◀
+                        </button>
+                      </div>
+                    )}
+
+                    {isLeftCollapsed ? (
+                      <div
+                        onClick={() => setIsLeftCollapsed(false)}
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          paddingTop: "12px",
+                          cursor: "pointer",
+                          height: "100%",
+                          backgroundColor: "#0f172a",
+                          color: "#38bdf8",
+                        }}
+                        title="Expand Left Pane"
+                      >
+                        <span>⚡</span>
+                      </div>
+                    ) : leftPaneMode === "stream" ? (
+                      <div style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+                        <AgentExecutionStream
+                          events={streamEvents}
+                          isStreaming={isStreaming}
+                          onClear={() => setStreamEvents([])}
+                        />
+                      </div>
+                    ) : (
+                      <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+                        <ConfigPanel isCollapsed={false} onToggleCollapse={() => setIsLeftCollapsed(true)} />
+                      </div>
+                    )}
+                  </div>
+
                   <div
                     className="canvas-container"
                     onClick={(e) => {
@@ -247,7 +352,12 @@ export default function App() {
                   >
                     <SegmentedDocEditor />
                   </div>
-                  <PromptPanel isCollapsed={isRightCollapsed} onToggleCollapse={() => setIsRightCollapsed(!isRightCollapsed)} />
+                  <PromptPanel
+                    isCollapsed={isRightCollapsed}
+                    onToggleCollapse={() => setIsRightCollapsed(!isRightCollapsed)}
+                    onStreamEvent={(evt) => setStreamEvents((prev) => [...prev, evt])}
+                    onStreamStatusChange={setIsStreaming}
+                  />
                 </div>
               </main>
               <EditorStatusBar />

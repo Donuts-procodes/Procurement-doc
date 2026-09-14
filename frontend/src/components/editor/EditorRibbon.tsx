@@ -28,98 +28,112 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
   const addPage = useWizardStore((s) => s.addPage);
   const startNewSession = useWizardStore((s) => s.startNewSession);
 
+  const getChain = () => {
+    if (!activeEditor || activeEditor.isDestroyed) return null;
+    try {
+      return activeEditor.chain?.()?.focus?.() || null;
+    } catch {
+      return null;
+    }
+  };
+
   function handleModalConfirm(data: any) {
-    if (!activeEditor && modalType !== "header") return;
+    if (modalType === "header") {
+      if (data?.title) {
+        setStyleConfig({ headerText: data.title, showHeaderFooter: true });
+      }
+      return;
+    }
+
+    const chain = getChain();
+    if (!chain) return;
 
     if (modalType === "picture" && data.url) {
       execCmd("insertImage", data.url);
     } else if (modalType === "custom-table" && data.rows && data.cols) {
-      activeEditor.chain().focus().insertTable({ rows: data.rows, cols: data.cols, withHeaderRow: true }).run();
+      chain.insertTable({ rows: data.rows, cols: data.cols, withHeaderRow: true })?.run?.();
     } else if (modalType === "cover-page") {
       if (data.style === "corporate") {
-        activeEditor.chain().focus().insertContent(`<div style="background: linear-gradient(135deg, #0f4c81, #1a73e8); color: white; padding: 40px; border-radius: 8px; text-align: center; margin-bottom: 24px;"><h1 style="color: white; font-size: 28px; margin-bottom: 8px;">EXECUTIVE PROCUREMENT PROPOSAL</h1><p style="font-size: 16px; opacity: 0.9;">ENTERPRISE SPECIFICATION & TECHNICAL BLUEPRINT</p><div style="margin-top: 20px; font-size: 13px; opacity: 0.8;">Date: ${new Date().toLocaleDateString()} • Status: Confidential</div></div>`).run();
+        chain.insertContent(`<div style="background: linear-gradient(135deg, #0f4c81, #1a73e8); color: white; padding: 40px; border-radius: 8px; text-align: center; margin-bottom: 24px;"><h1 style="color: white; font-size: 28px; margin-bottom: 8px;">EXECUTIVE PROCUREMENT PROPOSAL</h1><p style="font-size: 16px; opacity: 0.9;">ENTERPRISE SPECIFICATION & TECHNICAL BLUEPRINT</p><div style="margin-top: 20px; font-size: 13px; opacity: 0.8;">Date: ${new Date().toLocaleDateString()} • Status: Confidential</div></div>`)?.run?.();
       } else if (data.style === "minimal") {
-        activeEditor.chain().focus().insertContent(`<div style="text-align: center; padding: 40px 0; border-bottom: 2px solid #333;"><h1 style="letter-spacing: 2px;">PROCUREMENT PROPOSAL SPECIFICATION</h1><p>Confidential Tender Document</p></div>`).run();
+        chain.insertContent(`<div style="text-align: center; padding: 40px 0; border-bottom: 2px solid #333;"><h1 style="letter-spacing: 2px;">PROCUREMENT PROPOSAL SPECIFICATION</h1><p>Confidential Tender Document</p></div>`)?.run?.();
       } else {
-        activeEditor.chain().focus().insertContent(`<div style="border-left: 8px solid #2563eb; padding: 24px; background: #eff6ff; margin-bottom: 24px;"><h1 style="color: #1e40af; margin: 0;">TECHNICAL PROPOSAL BLUEPRINT</h1><p style="margin-top: 6px; color: #1e3a8a;">RFP Technical Submission</p></div>`).run();
+        chain.insertContent(`<div style="border-left: 8px solid #2563eb; padding: 24px; background: #eff6ff; margin-bottom: 24px;"><h1 style="color: #1e40af; margin: 0;">TECHNICAL PROPOSAL BLUEPRINT</h1><p style="margin-top: 6px; color: #1e3a8a;">RFP Technical Submission</p></div>`)?.run?.();
       }
     } else if (modalType === "icons" && data.icon) {
-      activeEditor.chain().focus().insertContent(` ${data.icon} `).run();
+      chain.insertContent(` ${data.icon} `)?.run?.();
     } else if (modalType === "symbols" && data.symbol) {
-      activeEditor.chain().focus().insertContent(` ${data.symbol} `).run();
+      chain.insertContent(` ${data.symbol} `)?.run?.();
     } else if (modalType === "video" && data.url) {
-      activeEditor.chain().focus().insertContent(`<div style="margin: 16px 0; text-align: center; background: #f8fafc; padding: 16px; border-radius: 8px;"><p style="margin:0;">🎥 <strong>Embedded Video Stream:</strong> <a href="${data.url}" target="_blank">${data.url}</a></p></div>`).run();
+      chain.insertContent(`<div style="margin: 16px 0; text-align: center; background: #f8fafc; padding: 16px; border-radius: 8px;"><p style="margin:0;">🎥 <strong>Embedded Video Stream:</strong> <a href="${data.url}" target="_blank">${data.url}</a></p></div>`)?.run?.();
     } else if (modalType === "link" && data.url) {
-      activeEditor.chain().focus().insertContent(`<a href="${data.url}" target="_blank">${data.text || data.url}</a>`).run();
+      chain.insertContent(`<a href="${data.url}" target="_blank">${data.text || data.url}</a>`)?.run?.();
     } else if (modalType === "bookmark" && data.name) {
-      activeEditor.chain().focus().insertContent(`<span id="${data.name}" style="color: #2563eb; font-weight: 600;">🚩 [${data.name}]</span>`).run();
+      chain.insertContent(`<span id="${data.name}" style="color: #2563eb; font-weight: 600;">🚩 [${data.name}]</span>`)?.run?.();
     } else if (modalType === "comment" && data.text) {
-      activeEditor.chain().focus().insertContent(`<div style="background: #fff8e1; border-left: 4px solid #ffb300; padding: 10px; margin: 12px 0; font-size: 13px; color: #78350f;">💬 <strong>Reviewer Note:</strong> ${data.text}</div>`).run();
-    } else if (modalType === "header" && data.title) {
-      setStyleConfig({ headerText: data.title, showHeaderFooter: true });
+      chain.insertContent(`<div style="background: #fff8e1; border-left: 4px solid #ffb300; padding: 10px; margin: 12px 0; font-size: 13px; color: #78350f;">💬 <strong>Reviewer Note:</strong> ${data.text}</div>`)?.run?.();
     } else if (modalType === "wordart" && data.text) {
-      activeEditor.chain().focus().insertContent(`<h1 style="background: linear-gradient(45deg, #1a73e8, #9c27b0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 32px; font-weight: 800; text-align: center; margin: 20px 0;">${data.text}</h1>`).run();
+      chain.insertContent(`<h1 style="background: linear-gradient(45deg, #1a73e8, #9c27b0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 32px; font-weight: 800; text-align: center; margin: 20px 0;">${data.text}</h1>`)?.run?.();
     }
   }
 
   function execCmd(command: string, value: string | undefined = undefined) {
-    if (!activeEditor) return;
-
-    const chain = activeEditor.chain().focus();
+    const chain = getChain();
+    if (!chain) return;
 
     switch (command) {
       case "bold":
-        chain.toggleBold().run();
+        chain.toggleBold()?.run?.();
         break;
       case "italic":
-        chain.toggleItalic().run();
+        chain.toggleItalic()?.run?.();
         break;
       case "underline":
-        chain.toggleUnderline().run();
+        chain.toggleUnderline()?.run?.();
         break;
       case "strikeThrough":
-        chain.toggleStrike().run();
+        chain.toggleStrike()?.run?.();
         break;
       case "subscript":
-        chain.toggleSubscript().run();
+        chain.toggleSubscript()?.run?.();
         break;
       case "superscript":
-        chain.toggleSuperscript().run();
+        chain.toggleSuperscript()?.run?.();
         break;
       case "insertUnorderedList":
-        chain.toggleBulletList().run();
+        chain.toggleBulletList()?.run?.();
         break;
       case "insertOrderedList":
-        chain.toggleOrderedList().run();
+        chain.toggleOrderedList()?.run?.();
         break;
       case "justifyLeft":
-        chain.setTextAlign("left").run();
+        chain.setTextAlign("left")?.run?.();
         break;
       case "justifyCenter":
-        chain.setTextAlign("center").run();
+        chain.setTextAlign("center")?.run?.();
         break;
       case "justifyRight":
-        chain.setTextAlign("right").run();
+        chain.setTextAlign("right")?.run?.();
         break;
       case "foreColor":
-        if (value) chain.setColor(value).run();
+        if (value) chain.setColor(value)?.run?.();
         break;
       case "formatBlock":
-        if (value === "p") chain.setParagraph().run();
-        else if (value === "h1") chain.toggleHeading({ level: 1 }).run();
-        else if (value === "h2") chain.toggleHeading({ level: 2 }).run();
+        if (value === "p") chain.setParagraph()?.run?.();
+        else if (value === "h1") chain.toggleHeading({ level: 1 })?.run?.();
+        else if (value === "h2") chain.toggleHeading({ level: 2 })?.run?.();
         break;
       case "insertImage":
-        if (value) chain.setImage({ src: value }).run();
+        if (value) chain.setImage({ src: value })?.run?.();
         break;
       case "insertTable":
-        chain.insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+        chain.insertTable({ rows: 3, cols: 3, withHeaderRow: true })?.run?.();
         break;
       case "insertHorizontalRule":
-        chain.setHorizontalRule().run();
+        chain.setHorizontalRule()?.run?.();
         break;
       case "insertHTML":
-        chain.insertContent(value).run();
+        chain.insertContent(value)?.run?.();
         break;
       default:
         console.warn("Unsupported command:", command);
@@ -192,7 +206,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                     <button
                       className="ribbon-sm-btn"
                       onClick={() => {
-                        if (activeEditor) activeEditor.chain().focus().selectAll().run();
+                        getChain()?.selectAll()?.run?.();
                       }}
                       title="Format Painter"
                     >
@@ -319,11 +333,12 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                       style={{ minWidth: "75px" }}
                       onChange={(e) => {
                         const mode = e.target.value;
-                        if (!activeEditor) return;
-                        const selText = activeEditor.state.doc.textBetween(activeEditor.state.selection.from, activeEditor.state.selection.to);
+                        if (!activeEditor || activeEditor.isDestroyed) return;
+                        const selText = activeEditor.state?.doc?.textBetween(activeEditor.state?.selection?.from || 0, activeEditor.state?.selection?.to || 0);
                         if (!selText) return;
-                        if (mode === "upper") activeEditor.chain().focus().insertContent(selText.toUpperCase()).run();
-                        else if (mode === "lower") activeEditor.chain().focus().insertContent(selText.toLowerCase()).run();
+                        const chain = getChain();
+                        if (mode === "upper") chain?.insertContent(selText.toUpperCase())?.run?.();
+                        else if (mode === "lower") chain?.insertContent(selText.toLowerCase())?.run?.();
                       }}
                     >
                       <option value="">Aa Case</option>
@@ -334,7 +349,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                     <button
                       className="ribbon-icon-btn"
                       onClick={() => {
-                        if (activeEditor) activeEditor.chain().focus().unsetAllMarks().run();
+                        getChain()?.unsetAllMarks()?.run?.();
                       }}
                       title="Clear All Formatting"
                     >
@@ -374,9 +389,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                       style={{ minWidth: "85px" }}
                       onChange={(e) => {
                         const bg = e.target.value;
-                        if (activeEditor) {
-                          activeEditor.chain().focus().setMark("textStyle", { style: `background-color: ${bg}` }).run();
-                        }
+                        getChain()?.setMark("textStyle", { style: `background-color: ${bg}` })?.run?.();
                       }}
                     >
                       <option value="transparent">Highlight</option>
@@ -413,7 +426,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                       style={{ padding: "0 2px", fontSize: "10px" }}
                       onChange={(e) => {
                         execCmd("insertUnorderedList");
-                        if (activeEditor) activeEditor.chain().focus().updateAttributes("bulletList", { style: e.target.value }).run();
+                        getChain()?.updateAttributes("bulletList", { style: e.target.value })?.run?.();
                       }}
                     >
                       <option value="disc">•</option>
@@ -440,7 +453,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                       style={{ padding: "0 2px", fontSize: "10px" }}
                       onChange={(e) => {
                         execCmd("insertOrderedList");
-                        if (activeEditor) activeEditor.chain().focus().updateAttributes("orderedList", { type: e.target.value }).run();
+                        getChain()?.updateAttributes("orderedList", { type: e.target.value })?.run?.();
                       }}
                     >
                       <option value="1">1.2.3</option>
@@ -452,7 +465,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                     <button
                       className="ribbon-icon-btn"
                       onClick={() => {
-                        if (activeEditor) activeEditor.chain().focus().setNode("paragraph", { style: "margin-left: 0cm" }).run();
+                        getChain()?.setNode("paragraph", { style: "margin-left: 0cm" })?.run?.();
                       }}
                       title="Decrease Indent"
                     >
@@ -463,7 +476,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                     <button
                       className="ribbon-icon-btn"
                       onClick={() => {
-                        if (activeEditor) activeEditor.chain().focus().setNode("paragraph", { style: "margin-left: 1cm" }).run();
+                        getChain()?.setNode("paragraph", { style: "margin-left: 1cm" })?.run?.();
                       }}
                       title="Increase Indent"
                     >
@@ -607,7 +620,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                     <button
                       className="ribbon-sm-btn"
                       onClick={() => {
-                        if (activeEditor) activeEditor.chain().focus().selectAll().run();
+                        getChain()?.selectAll()?.run?.();
                       }}
                       title="Select All Content"
                     >
@@ -661,12 +674,12 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                       style={{ fontSize: "10px", padding: "1px 4px", maxWidth: "80px" }}
                       onChange={(e) => {
                         const style = e.target.value;
-                        if (activeEditor) {
-                          if (style === "corporate") {
-                            activeEditor.chain().focus().insertContent(`<div style="border-left: 6px solid #1a73e8; padding: 20px; background: #f8fafc; margin-bottom: 20px;"><h2>Corporate Proposal Cover</h2><p>Enterprise RFP Specification</p></div>`).run();
-                          } else if (style === "minimal") {
-                            activeEditor.chain().focus().insertContent(`<div style="text-align: center; padding: 40px 0; border-bottom: 2px solid #333;"><h1 style="letter-spacing: 2px;">PROCUREMENT PROPOSAL</h1></div>`).run();
-                          }
+                        const chain = getChain();
+                        if (!chain) return;
+                        if (style === "corporate") {
+                          chain.insertContent(`<div style="border-left: 6px solid #1a73e8; padding: 20px; background: #f8fafc; margin-bottom: 20px;"><h2>Corporate Proposal Cover</h2><p>Enterprise RFP Specification</p></div>`)?.run?.();
+                        } else if (style === "minimal") {
+                          chain.insertContent(`<div style="text-align: center; padding: 40px 0; border-bottom: 2px solid #333;"><h1 style="letter-spacing: 2px;">PROCUREMENT PROPOSAL</h1></div>`)?.run?.();
                         }
                       }}
                     >
@@ -702,12 +715,16 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                       style={{ fontSize: "10px", padding: "1px 4px", maxWidth: "75px" }}
                       onChange={(e) => {
                         const val = e.target.value;
-                        if (!activeEditor) return;
-                        if (val === "2x2") activeEditor.chain().focus().insertTable({ rows: 2, cols: 2, withHeaderRow: true }).run();
-                        else if (val === "3x3") activeEditor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
-                        else if (val === "4x4") activeEditor.chain().focus().insertTable({ rows: 4, cols: 4, withHeaderRow: true }).run();
-                        else if (val === "5x5") activeEditor.chain().focus().insertTable({ rows: 5, cols: 5, withHeaderRow: true }).run();
-                        else if (val === "custom") setModalType("custom-table");
+                        if (val === "custom") {
+                          setModalType("custom-table");
+                          return;
+                        }
+                        const chain = getChain();
+                        if (!chain) return;
+                        if (val === "2x2") chain.insertTable({ rows: 2, cols: 2, withHeaderRow: true })?.run?.();
+                        else if (val === "3x3") chain.insertTable({ rows: 3, cols: 3, withHeaderRow: true })?.run?.();
+                        else if (val === "4x4") chain.insertTable({ rows: 4, cols: 4, withHeaderRow: true })?.run?.();
+                        else if (val === "5x5") chain.insertTable({ rows: 5, cols: 5, withHeaderRow: true })?.run?.();
                       }}
                     >
                       <option value="3x3">3x3 Grid</option>
@@ -737,9 +754,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                       title="Image Text Wrap"
                       onChange={(e) => {
                         const align = e.target.value;
-                        if (activeEditor) {
-                          activeEditor.chain().focus().updateAttributes("image", { alignment: align }).run();
-                        }
+                        getChain()?.updateAttributes("image", { alignment: align })?.run?.();
                       }}
                     >
                       <option value="center">Center</option>
@@ -752,9 +767,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                     <button
                       className="ribbon-sm-btn"
                       onClick={() => {
-                        if (activeEditor) {
-                          activeEditor.chain().focus().insertContent(`<div style="width: 100%; height: 2px; background: var(--doc-accent-color, #1a73e8); margin: 16px 0;"></div>`).run();
-                        }
+                        getChain()?.insertContent(`<div style="width: 100%; height: 2px; background: var(--doc-accent-color, #1a73e8); margin: 16px 0;"></div>`)?.run?.();
                       }}
                       title="Insert Shapes"
                     >
@@ -769,15 +782,13 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                     <button
                       className="ribbon-sm-btn"
                       onClick={() => {
-                        if (activeEditor) {
-                          activeEditor.chain().focus().insertContent(`
+                        getChain()?.insertContent(`
                             <div style="display: flex; gap: 12px; margin: 16px 0;">
                               <div style="flex: 1; padding: 12px; background: #e8f0fe; border-radius: 6px; text-align: center; font-weight: 600;">Phase 1</div>
                               <div style="flex: 1; padding: 12px; background: #e6f4ea; border-radius: 6px; text-align: center; font-weight: 600;">Phase 2</div>
                               <div style="flex: 1; padding: 12px; background: #fef7e0; border-radius: 6px; text-align: center; font-weight: 600;">Phase 3</div>
                             </div>
-                          `).run();
-                        }
+                          `)?.run?.();
                       }}
                       title="Insert SmartArt"
                     >
@@ -786,9 +797,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                     <button
                       className="ribbon-sm-btn"
                       onClick={() => {
-                        if (activeEditor) {
-                          activeEditor.chain().focus().insertTable({ rows: 4, cols: 3, withHeaderRow: true }).run();
-                        }
+                        getChain()?.insertTable({ rows: 4, cols: 3, withHeaderRow: true })?.run?.();
                       }}
                       title="Insert Chart"
                     >
@@ -880,14 +889,12 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                     <button
                       className="ribbon-sm-btn"
                       onClick={() => {
-                        if (activeEditor) {
-                          activeEditor.chain().focus().insertContent(`
+                        getChain()?.insertContent(`
                             <div style="border: 2px dashed #1a73e8; background: #f8fafc; padding: 16px; border-radius: 8px; margin: 16px 0;">
                               <p style="margin: 0; font-weight: 600; color: #1a73e8;">📦 Floating Callout Text Box</p>
                               <p style="margin-top: 4px; font-size: 13px;">Type key notes or scope summaries here...</p>
                             </div>
-                          `).run();
-                        }
+                          `)?.run?.();
                       }}
                     >
                       Text Box
@@ -901,8 +908,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                     <button
                       className="ribbon-sm-btn"
                       onClick={() => {
-                        if (activeEditor) {
-                          activeEditor.chain().focus().insertContent(`
+                        getChain()?.insertContent(`
                             <table border="1" style="width:100%; border-collapse:collapse; margin:20px 0;">
                               <tr>
                                 <th style="padding:10px; background:#f1f5f9;">Purchaser Authorized Officer</th>
@@ -913,8 +919,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                                 <td style="padding:20px;">Signature: ____________________<br>Name: Abdalah Jadaan<br>Seal: [ Corporate Seal ]</td>
                               </tr>
                             </table>
-                          `).run();
-                        }
+                          `)?.run?.();
                       }}
                     >
                       Signature Line
@@ -922,9 +927,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                     <button
                       className="ribbon-sm-btn"
                       onClick={() => {
-                        if (activeEditor) {
-                          activeEditor.chain().focus().insertContent(` ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })} `).run();
-                        }
+                        getChain()?.insertContent(` ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })} `)?.run?.();
                       }}
                     >
                       Date & Time
@@ -943,9 +946,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                     <button
                       className="ribbon-sm-btn"
                       onClick={() => {
-                        if (activeEditor) {
-                          activeEditor.chain().focus().insertContent(` <span style="font-family: math, serif; font-style: italic; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">T_res ≤ 2h • Uptime ≥ 99.9%</span> `).run();
-                        }
+                        getChain()?.insertContent(` <span style="font-family: math, serif; font-style: italic; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">T_res ≤ 2h • Uptime ≥ 99.9%</span> `)?.run?.();
                       }}
                     >
                       Equation
@@ -1249,9 +1250,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                       <button
                         className="ribbon-sm-btn"
                         onClick={() => {
-                          if (activeEditor) {
-                            activeEditor.chain().focus().insertContent(`<div style="column-count: 2; column-gap: 20px;"><p>Two-column text column section begins here...</p></div>`).run();
-                          }
+                          getChain()?.insertContent(`<div style="column-count: 2; column-gap: 20px;"><p>Two-column text column section begins here...</p></div>`)?.run?.();
                         }}
                       >
                         🏛️ Columns
@@ -1262,7 +1261,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                       <button
                         className="ribbon-sm-btn"
                         onClick={() => {
-                          if (activeEditor) activeEditor.chain().focus().insertContent(`<ol style="list-style-type: decimal;"><li>Numbered line item</li></ol>`).run();
+                          getChain()?.insertContent(`<ol style="list-style-type: decimal;"><li>Numbered line item</li></ol>`)?.run?.();
                         }}
                       >
                         🔢 Line Numbers
@@ -1287,7 +1286,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                           className="ribbon-select ribbon-select-sm"
                           style={{ fontSize: "10px", padding: "1px 4px" }}
                           onChange={(e) => {
-                            if (activeEditor) activeEditor.chain().focus().setNode("paragraph", { style: `margin-left: ${e.target.value}` }).run();
+                            getChain()?.setNode("paragraph", { style: `margin-left: ${e.target.value}` })?.run?.();
                           }}
                         >
                           <option value="0cm">0 cm</option>
@@ -1302,7 +1301,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                           className="ribbon-select ribbon-select-sm"
                           style={{ fontSize: "10px", padding: "1px 4px" }}
                           onChange={(e) => {
-                            if (activeEditor) activeEditor.chain().focus().setNode("paragraph", { style: `margin-right: ${e.target.value}` }).run();
+                            getChain()?.setNode("paragraph", { style: `margin-right: ${e.target.value}` })?.run?.();
                           }}
                         >
                           <option value="0cm">0 cm</option>
@@ -1320,7 +1319,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                           className="ribbon-select ribbon-select-sm"
                           style={{ fontSize: "10px", padding: "1px 4px" }}
                           onChange={(e) => {
-                            if (activeEditor) activeEditor.chain().focus().setNode("paragraph", { style: `margin-top: ${e.target.value}` }).run();
+                            getChain()?.setNode("paragraph", { style: `margin-top: ${e.target.value}` })?.run?.();
                           }}
                         >
                           <option value="0pt">0 pt</option>
@@ -1358,7 +1357,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                       <button
                         className="ribbon-sm-btn"
                         onClick={() => {
-                          if (activeEditor) activeEditor.chain().focus().updateAttributes("image", { alignment: "center" }).run();
+                          getChain()?.updateAttributes("image", { alignment: "center" })?.run?.();
                         }}
                       >
                         📌 Position
@@ -1366,7 +1365,7 @@ export function EditorRibbon({ onOpenSavedSessions }: EditorRibbonProps) {
                       <button
                         className="ribbon-sm-btn"
                         onClick={() => {
-                          if (activeEditor) activeEditor.chain().focus().updateAttributes("image", { alignment: "left" }).run();
+                          getChain()?.updateAttributes("image", { alignment: "left" })?.run?.();
                         }}
                       >
                         🔄 Wrap Text

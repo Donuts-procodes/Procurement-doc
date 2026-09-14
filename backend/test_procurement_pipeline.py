@@ -49,9 +49,16 @@ async def test_fillup_agent_pdf_rag_extraction(mock_get_chat_model, mock_kb_clas
     ]
     mock_kb_class.return_value = mock_kb_instance
 
+    from app.agents.procurement_graph import BatchFieldExtraction, BatchFieldExtractionItem
     mock_llm = MagicMock()
     mock_extractor = AsyncMock()
-    mock_extractor.ainvoke.return_value = MagicMock(extracted=True, summary="Mobile App & Web Admin Panel for Property Match")
+    mock_extractor.ainvoke.return_value = BatchFieldExtraction(
+        fields=[
+            BatchFieldExtractionItem(field_name="scope_summary", extracted=True, summary="Mobile App & Web Admin Panel for Property Match"),
+            BatchFieldExtractionItem(field_name="submission_deadline", extracted=True, summary="30 calendar days"),
+            BatchFieldExtractionItem(field_name="budget_estimate", extracted=True, summary="$50,000 USD"),
+        ]
+    )
     mock_llm.with_structured_output.return_value = mock_extractor
     mock_get_chat_model.return_value = mock_llm
 

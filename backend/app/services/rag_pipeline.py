@@ -59,9 +59,9 @@ class GeneratedDocument(BaseModel):
     page_titles: list[str]
 
 
-def generate_outline(procurement_doc_type: ProcurementDocType) -> DocumentOutline:
-    logger.info(f"Generating section outline for ProcurementDocType='{procurement_doc_type.value}'...")
-    sections = get_procurement_sections(procurement_doc_type)
+def generate_outline(procurement_doc_type: ProcurementDocType, num_pages: int | None = None) -> DocumentOutline:
+    logger.info(f"Generating section outline for ProcurementDocType='{procurement_doc_type.value}' (target num_pages={num_pages})...")
+    sections = get_procurement_sections(procurement_doc_type, num_pages=num_pages)
     outline = DocumentOutline(
         pages=[
             PageOutlineItem(title=sec.title, section_type=sec.section_type, guidance=sec.guidance)

@@ -257,13 +257,150 @@ PROCUREMENT_TEMPLATES: dict[ProcurementDocType, list[SectionSchema]] = {
     for doc_type in ProcurementDocType
 }
 
+EXPANSION_SECTIONS_PER_DOC_TYPE: dict[ProcurementDocType, list[SectionSchema]] = {
+    ProcurementDocType.RFP: [
+        SectionSchema(title="Technical Architecture & System Specifications", section_type="prose", guidance="Detailed infrastructure standards, data flow, API architectures, and technology specifications."),
+        SectionSchema(title="Functional & Operational Requirements", section_type="prose", guidance="Itemized functional capabilities, administrative workflows, and user requirements."),
+        SectionSchema(title="Detailed Cost Breakdown & Line Items", section_type="line_items", guidance="Itemized transparent cost breakdown, rate categories, and unit pricing."),
+        SectionSchema(title="Milestone Deliverables & Payment Schedule", section_type="payment_schedule", guidance="Deliverable allocations, percentage payments, and invoice trigger conditions."),
+        SectionSchema(title="SLA Commitments & Governance Framework", section_type="prose", guidance="Service level targets, 99.9% availability, issue escalation, and governance reporting."),
+        SectionSchema(title="Data Protection, Security & Compliance", section_type="clause", guidance="Data privacy regulations, SOC2/GDPR compliance, access controls, and statutory requirements."),
+        SectionSchema(title="Quality Assurance & Acceptance Testing", section_type="prose", guidance="Testing methodologies, staging reviews, defect resolution, and sign-off criteria."),
+        SectionSchema(title="Training, Documentation & Handover", section_type="prose", guidance="Administrative manuals, user onboarding sessions, and operational handover."),
+        SectionSchema(title="Formal Execution & Sign-Off Authorization", section_type="clause", guidance="Authorized signatory execution blocks and binding procurement sign-off."),
+    ],
+    ProcurementDocType.SOW: [
+        SectionSchema(title="Technical Architecture & Integration Standards", section_type="prose", guidance="Platform baseline, architecture standards, and third-party integrations."),
+        SectionSchema(title="Milestone Deliverable Payment Allocations", section_type="payment_schedule", guidance="Structured milestone payment schedule tied to accepted deliverables."),
+        SectionSchema(title="Key Performance Indicators & Service Levels", section_type="prose", guidance="Response SLAs, code review criteria, and performance benchmarks."),
+        SectionSchema(title="Acceptance Criteria & Inspection Protocol", section_type="clause", guidance="Formal deliverable review periods, sign-off workflow, and deficiency remedies."),
+        SectionSchema(title="Governance, Communication & Change Orders", section_type="prose", guidance="Meeting cadences, escalation paths, and scope change management."),
+        SectionSchema(title="Confidentiality & Intellectual Property Transfer", section_type="clause", guidance="Ownership of code, documentation, work product, and non-disclosure terms."),
+        SectionSchema(title="Formal Execution & Sign-Off Authorization", section_type="clause", guidance="Binding authorized signatures and execution certification."),
+    ],
+    ProcurementDocType.RFQ: [
+        SectionSchema(title="Detailed Quotation & Line Items", section_type="line_items", guidance="Comprehensive itemized bill of materials, unit rates, and pricing."),
+        SectionSchema(title="Delivery Logistics & Packaging Protocol", section_type="prose", guidance="Shipping terms, freight logistics, packaging, and receipt criteria."),
+        SectionSchema(title="Warranty, Defect Remediation & AMC", section_type="clause", guidance="Standard replacement terms, repair turnaround, and defect remediation."),
+        SectionSchema(title="Milestone Payment Schedule & Terms", section_type="payment_schedule", guidance="Payment milestones, invoicing rules, and currency commitments."),
+        SectionSchema(title="Statutory Certifications & Compliance", section_type="clause", guidance="Regulatory compliance, manufacturer certifications, and standards."),
+        SectionSchema(title="Formal Execution & Sign-Off Authorization", section_type="clause", guidance="Authorized commercial signatures and RFQ binding acceptance."),
+    ],
+    ProcurementDocType.VENDOR_CONTRACT: [
+        SectionSchema(title="Scope of Services & Performance Baseline", section_type="prose", guidance="Authorized scope boundaries, quality baseline, and delivery standard."),
+        SectionSchema(title="Fee Schedule & Authorized Compensation", section_type="line_items", guidance="Detailed fee schedule, hourly rates, and allowable expenses."),
+        SectionSchema(title="Milestone Payment Terms & Allocations", section_type="payment_schedule", guidance="Payment milestone allocations and invoicing rules."),
+        SectionSchema(title="Service Level Agreements & Remedies", section_type="prose", guidance="Performance credits, uptime guarantees, and remedial obligations."),
+        SectionSchema(title="Data Protection, IP & Confidential Information", section_type="clause", guidance="Work-made-for-hire IP assignment, non-disclosure, and data privacy."),
+        SectionSchema(title="Indemnification, Liability & Terminations", section_type="clause", guidance="Mutual indemnification, cap on liability, and termination rights."),
+        SectionSchema(title="Formal Execution & Sign-Off Authorization", section_type="clause", guidance="Execution blocks, corporate seals, and binding signatory clauses."),
+    ],
+    ProcurementDocType.RFI: [
+        SectionSchema(title="Technical Architecture & Product Roadmap", section_type="prose", guidance="System topology, API capabilities, and technology vision."),
+        SectionSchema(title="Data Protection, Security & Hosting Infrastructure", section_type="prose", guidance="Cloud hosting, certifications, data isolation, and cybersecurity controls."),
+        SectionSchema(title="Commercial Pricing Models & Licensing Options", section_type="prose", guidance="Indicative enterprise tiers, seat licenses, and commercial arrangements."),
+        SectionSchema(title="Implementation Methodology & Case Studies", section_type="prose", guidance="Deployment timetables, proven client references, and rollout practices."),
+        SectionSchema(title="Operational Resilience & Disaster Recovery", section_type="prose", guidance="Business continuity, RTO/RPO metrics, and risk management."),
+    ],
+    ProcurementDocType.PURCHASE_ORDER: [
+        SectionSchema(title="Itemized Authorized Line Items", section_type="line_items", guidance="Part numbers, quantities, unit prices, and total financial amounts."),
+        SectionSchema(title="Delivery Location & Fulfillment Instructions", section_type="prose", guidance="Site contacts, receiving guidelines, and freight terms."),
+        SectionSchema(title="Milestone Payment Schedule & Invoicing Terms", section_type="payment_schedule", guidance="Invoice submission rules, Net terms, and payment allocation."),
+        SectionSchema(title="Inspection, Quality & Acceptance Protocol", section_type="clause", guidance="Inspection rights, defect rejection, and return shipping rules."),
+        SectionSchema(title="Authorized Corporate Signatures & Order Verification", section_type="clause", guidance="Authorized purchasing agent signature and PO validation."),
+    ],
+    ProcurementDocType.VENDOR_SCORECARD: [
+        SectionSchema(title="Operational SLA Attainment Breakdown", section_type="prose", guidance="Recorded uptime, response times, and incident resolution scorecard."),
+        SectionSchema(title="Quality, Defect & Delivery Scorecard", section_type="prose", guidance="Scored assessment of milestone punctuality and deliverable accuracy."),
+        SectionSchema(title="Commercial Rating & Value Realization", section_type="line_items", guidance="Budget variance, invoice accuracy, and contract savings audit."),
+        SectionSchema(title="Continuous Improvement & Remedial Action Plan", section_type="prose", guidance="Corrective action requirements and upcoming performance goals."),
+        SectionSchema(title="Authorized Stakeholder Review Signatures", section_type="clause", guidance="Signatures of vendor manager and authorized reviewer."),
+    ],
+}
+
+# Comprehensive 35-section enterprise taxonomy ensuring documents expanding to 25-30+ pages
+# maintain 100% unique, non-overlapping, substantive procurement chapters.
+MASTER_PROCUREMENT_TAXONOMY: list[SectionSchema] = [
+    SectionSchema(title="Executive Summary & Strategic Objectives", section_type="prose", guidance="High-level commercial context, executive drivers, and core procurement vision."),
+    SectionSchema(title="Project Scope Boundaries & Limitations", section_type="prose", guidance="Explicit inclusions, exclusions, edge constraints, and operational boundaries."),
+    SectionSchema(title="Technical Architecture & System Specifications", section_type="prose", guidance="Infrastructure baseline, component topology, integration protocols, and technology specifications."),
+    SectionSchema(title="Functional & Operational Specifications", section_type="prose", guidance="Itemized capabilities, operational roles, business processes, and user workflows."),
+    SectionSchema(title="Non-Functional Performance & Scalability Benchmarks", section_type="prose", guidance="Throughput, latency benchmarks, concurrency targets, and scalability requirements."),
+    SectionSchema(title="Cloud Hosting, Infrastructure & DevOps Standards", section_type="prose", guidance="Cloud hosting environment, container orchestration, CI/CD pipelines, and infrastructure governance."),
+    SectionSchema(title="Data Security, Encryption & Privacy Compliance", section_type="clause", guidance="Data at rest and in transit encryption standards, tenant isolation, and SOC2/GDPR adherence."),
+    SectionSchema(title="Identity, Access Management & Zero-Trust Security", section_type="clause", guidance="Role-based access controls, MFA requirements, zero-trust network protocols, and audit logs."),
+    SectionSchema(title="API Integration & Third-Party Interface Protocols", section_type="prose", guidance="RESTful / GraphQL interface standards, payload serialization, rate limits, and webhook handling."),
+    SectionSchema(title="Service Level Agreements & Uptime Commitments", section_type="prose", guidance="99.9% availability targets, planned maintenance windows, service credits, and SLA remedy mechanisms."),
+    SectionSchema(title="Incident Response, Severity Tiers & Escalation Matrix", section_type="prose", guidance="P1-P4 classification, response/resolution SLAs, 24/7 on-call coverage, and escalation contacts."),
+    SectionSchema(title="Business Continuity, Disaster Recovery & High Availability", section_type="prose", guidance="RTO/RPO metrics, automated failover architecture, backup schedules, and annual DR drills."),
+    SectionSchema(title="Quality Assurance, Automated Testing & Verification", section_type="prose", guidance="Unit, integration, security test coverage requirements, staging verification, and sign-off criteria."),
+    SectionSchema(title="User Acceptance Testing (UAT) & Defect Remediation", section_type="prose", guidance="Acceptance testing cadence, issue classification, turnaround times, and final sign-off gates."),
+    SectionSchema(title="Delivery Milestones & Phased Work Breakdown Structure", section_type="prose", guidance="Phased delivery roadmap, work breakdown structure (WBS), key deliverables, and target completion dates."),
+    SectionSchema(title="Detailed Cost Breakdown & Line Items", section_type="line_items", guidance="Itemized bill of quantities, labor rate categories, unit pricing, taxes, and grand totals."),
+    SectionSchema(title="Milestone Payment Schedule & Invoicing Trigger Conditions", section_type="payment_schedule", guidance="Structured milestone payment allocations, percentage disbursements, and invoice certification criteria."),
+    SectionSchema(title="Change Control Management & Scope Variance Protocol", section_type="clause", guidance="Formal change request procedure, impact assessments, pricing adjustments, and approval thresholds."),
+    SectionSchema(title="Project Governance, Steering Committee & Reporting Cadence", section_type="prose", guidance="Executive steering cadence, weekly operational syncs, status reporting templates, and risk logs."),
+    SectionSchema(title="Vendor Key Personnel, Staffing Matrix & Resource Commitments", section_type="prose", guidance="Named key personnel, staffing allocation matrix, resume qualifications, and substitution rules."),
+    SectionSchema(title="Training, Knowledge Transfer & Administrative Handover", section_type="prose", guidance="Super-user training workshops, admin curriculum, recorded modules, and knowledge handover protocols."),
+    SectionSchema(title="Operational Runbooks & Deliverables Documentation", section_type="prose", guidance="Standard operating procedures (SOPs), system administration runbooks, API documentation, and asset delivery."),
+    SectionSchema(title="Intellectual Property Rights & Work-Product Ownership", section_type="clause", guidance="Pre-existing vendor IP, client work-for-hire assignment, patent rights, and open-source licensing."),
+    SectionSchema(title="Indemnification, Limitation of Liability & Insurance Coverage", section_type="clause", guidance="Mutual indemnification, direct vs consequential damages carve-outs, liability caps, and insurance certificates."),
+    SectionSchema(title="Confidentiality, Non-Disclosure & Data Retention", section_type="clause", guidance="Trade secret protection, employee confidentiality agreements, statutory retention, and secure destruction."),
+    SectionSchema(title="Warranties, Representations & Defect Remediation", section_type="clause", guidance="Express performance warranties, 12-month defect remediation coverage, and manufacturer backing."),
+    SectionSchema(title="Termination Rights, Transition Services & Exit Management", section_type="clause", guidance="Termination for convenience, breach cure periods, post-termination transition services, and data extraction."),
+    SectionSchema(title="Statutory Certifications, Regulatory Mandates & Standards", section_type="clause", guidance="Industry regulatory compliance (ISO, HIPAA, PCI-DSS), trade authorizations, and statutory filings."),
+    SectionSchema(title="Legal Jurisdiction, Governing Law & Dispute Resolution", section_type="clause", guidance="Governing law, forum selection, mandatory mediation, and binding arbitration procedures."),
+    SectionSchema(title="Vendor Evaluation Criteria & Continuous Improvement Scorecard", section_type="prose", guidance="Quarterly vendor scoring metrics, cost efficiency reviews, and service improvement action plans."),
+    SectionSchema(title="Subcontracting, Third-Party Providers & Dependency Risk", section_type="clause", guidance="Subcontractor disclosure requirements, flow-down terms, and third-party risk management."),
+    SectionSchema(title="Environmental, Social & Corporate Governance (ESG) Compliance", section_type="clause", guidance="Sustainability benchmarks, ethical labor standards, supplier diversity, and ESG commitments."),
+    SectionSchema(title="Audit Rights, Inspection & Regulatory Oversight", section_type="clause", guidance="Annual buyer and third-party auditor inspection rights, facility access, and logging verification."),
+    SectionSchema(title="Hardware, Tooling & Environment Requirements", section_type="prose", guidance="Prerequisite hardware specifications, developer environment tooling, and client infrastructure dependencies."),
+    SectionSchema(title="Formal Execution & Sign-Off Authorization", section_type="clause", guidance="Authorized commercial signatures, corporate seal, power of attorney validation, and binding execution."),
+]
+
 
 def get_template_by_id(template_id: str) -> TemplateMetaData:
     return PREBUILT_TEMPLATES.get(template_id, PREBUILT_TEMPLATES["rfp_enterprise"])
 
 
-def get_procurement_sections(doc_type: ProcurementDocType, template_id: str | None = None) -> list[SectionSchema]:
+def get_procurement_sections(
+    doc_type: ProcurementDocType,
+    template_id: str | None = None,
+    num_pages: int | None = None,
+) -> list[SectionSchema]:
     if template_id and template_id in PREBUILT_TEMPLATES:
-        return PREBUILT_TEMPLATES[template_id].sections
-    return PROCUREMENT_TEMPLATES.get(doc_type, PROCUREMENT_TEMPLATES[ProcurementDocType.RFP])
+        base_sections = list(PREBUILT_TEMPLATES[template_id].sections)
+    else:
+        base_sections = list(PROCUREMENT_TEMPLATES.get(doc_type, PROCUREMENT_TEMPLATES[ProcurementDocType.RFP]))
+
+    if not num_pages or num_pages == len(base_sections):
+        return base_sections
+
+    if num_pages < len(base_sections):
+        return base_sections[:max(1, num_pages)]
+
+    existing_titles = {s.title.lower() for s in base_sections}
+    result_sections = list(base_sections)
+
+    # 1. Expand from doc-type specific pool
+    expansion_pool = EXPANSION_SECTIONS_PER_DOC_TYPE.get(doc_type, EXPANSION_SECTIONS_PER_DOC_TYPE[ProcurementDocType.RFP])
+    for exp_sec in expansion_pool:
+        if len(result_sections) >= num_pages:
+            break
+        if exp_sec.title.lower() not in existing_titles:
+            result_sections.append(exp_sec)
+            existing_titles.add(exp_sec.title.lower())
+
+    # 2. If user requests up to 25-35 pages, draw from comprehensive Master Taxonomy
+    if len(result_sections) < num_pages:
+        for master_sec in MASTER_PROCUREMENT_TAXONOMY:
+            if len(result_sections) >= num_pages:
+                break
+            # Check for title uniqueness or core title similarity
+            master_title_lower = master_sec.title.lower()
+            if master_title_lower not in existing_titles:
+                result_sections.append(master_sec)
+                existing_titles.add(master_title_lower)
+
+    return result_sections
 

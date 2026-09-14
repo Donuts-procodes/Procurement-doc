@@ -7,6 +7,21 @@ interface ConfigPanelProps {
   onToggleCollapse?: () => void;
 }
 
+function extractHeadingsFromSegment(segment: any): { text: string; level: number }[] {
+  const headings: { text: string; level: number }[] = [];
+  if (!segment.content || typeof segment.content !== "object") return headings;
+  const nodes = (segment.content as any).content || [];
+  for (const node of nodes) {
+    if (node.type === "heading" && node.content && Array.isArray(node.content)) {
+      const text = node.content.map((c: any) => c.text || "").join("").trim();
+      if (text) {
+        headings.push({ text, level: node.attrs?.level || 2 });
+      }
+    }
+  }
+  return headings;
+}
+
 export function ConfigPanel({ isCollapsed, onToggleCollapse }: ConfigPanelProps) {
   const { kbFiles, segments, selectedSegmentId, setSelectedSegmentId, setKnowledgeBase, isDarkMode } = useWizardStore((s) => ({
     kbFiles: s.kbFiles,
@@ -122,20 +137,59 @@ export function ConfigPanel({ isCollapsed, onToggleCollapse }: ConfigPanelProps)
         </div>
       </div>
 
-      {/* Outline Tree List */}
-      <div className="doc-outline-tree">
-        <div className="outline-heading-master">MASTER PROCUREMENT PROPOSAL</div>
-        {segments.map((seg, index) => (
-          <div
-            key={seg.segment_id}
-            className={`outline-item ${selectedSegmentId === seg.segment_id ? "active" : ""}`}
-            onClick={() => handleJumpToSegment(seg.segment_id)}
-          >
-            <span className="outline-title">
-              PAGE {index + 1}: {seg.name.toUpperCase()}
-            </span>
-          </div>
-        ))}
+      {/* Dynamic Outline & Table of Contents (ToC) Tree */}
+      <div className="doc-outline-tree" style={{ maxHeight: "320px", overflowY: "auto" }}>
+        <div className="outline-heading-master" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span>TABLE OF CONTENTS</span>
+          <span style={{ fontSize: "10px", opacity: 0.7 }}>{segments.length} Pages</span>
+        </div>
+        {segments.map((seg, index) => {
+          const subHeadings = extractHeadingsFromSegment(seg);
+          const isSelected = selectedSegmentId === seg.segment_id;
+          return (
+            <div key={seg.segment_id} style={{ marginBottom: "4px" }}>
+              <div
+                className={`outline-item ${isSelected ? "active" : ""}`}
+                onClick={() => handleJumpToSegment(seg.segment_id)}
+                style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}
+              >
+                <span style={{ fontSize: "10px", fontWeight: 700, opacity: 0.7 }}>P{index + 1}</span>
+                <span className="outline-title" style={{ fontWeight: isSelected ? 700 : 500 }}>
+                  {seg.name}
+                </span>
+                {seg.compliance_flag && (
+                  <span title="Compliance warning" style={{ marginLeft: "auto", fontSize: "10px" }}>⚠️</span>
+                )}
+              </div>
+              {/* Nested H2 / H3 sub-headings */}
+              {subHeadings.length > 0 && (
+                <div style={{ paddingLeft: "16px", display: "flex", flexDirection: "column", gap: "2px" }}>
+                  {subHeadings.map((h, hIdx) => (
+                    <div
+                      key={hIdx}
+                      onClick={() => handleJumpToSegment(seg.segment_id)}
+                      style={{
+                        fontSize: "11px",
+                        color: isDarkMode ? "#94a3b8" : "#64748b",
+                        cursor: "pointer",
+                        padding: "2px 4px",
+                        borderRadius: "3px",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        borderLeft: isDarkMode ? "1px solid rgba(255,255,255,0.1)" : "1px solid #e2e8f0",
+                        paddingLeft: "6px",
+                      }}
+                      title={h.text}
+                    >
+                      {h.text}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <div className="config-panel__divider" />

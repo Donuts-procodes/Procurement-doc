@@ -69,6 +69,9 @@ class GenerateResponse(BaseModel):
     document_id: str
     lexical_state: dict[str, Any]
     page_titles: list[str]
+    research_findings: list[dict[str, Any]] | None = None
+    audit_report: dict[str, Any] | None = None
+    sandbox_computations: dict[str, Any] | None = None
 
 
 class RegenerateSectionRequest(BaseModel):
@@ -82,3 +85,58 @@ class RegenerateSectionRequest(BaseModel):
 class RegenerateSectionResponse(BaseModel):
     section_id: str
     lexical_nodes: list[dict[str, Any]]
+
+
+class SubagentStatusDTO(BaseModel):
+    subagent_id: str
+    name: str
+    icon: str
+    role: str
+    status: str
+    current_activity: str | None = None
+    last_active_timestamp: float | None = None
+    total_runs: int = 0
+    average_duration_ms: float = 0.0
+    error_count: int = 0
+
+
+class SubagentActivityEventDTO(BaseModel):
+    event_id: str
+    timestamp: float
+    subagent_id: str
+    subagent_name: str
+    icon: str
+    activity_type: str
+    message: str
+    session_id: str | None = None
+    details: dict[str, Any] = Field(default_factory=dict)
+    duration_ms: float | None = None
+    status: str = "RUNNING"
+
+
+class SubagentLiveSummaryResponse(BaseModel):
+    active_count: int
+    subagents: list[SubagentStatusDTO]
+    recent_events: list[SubagentActivityEventDTO]
+
+
+class ImageSpatialAnchor(BaseModel):
+    image_id: str
+    url_or_base64: str
+    width: int = 0
+    height: int = 0
+    aspect_ratio: float = 1.0
+    preceding_heading: str | None = None
+    surrounding_text: str | None = None
+    original_page_index: int | None = None
+
+
+class ImageSemanticProfile(BaseModel):
+    image_id: str
+    visual_type: str = "general_reference"
+    title: str = "Extracted Visual Asset"
+    caption: str = "Verified Document Visual Asset"
+    extracted_concepts: list[str] = Field(default_factory=list)
+    recommended_section: str = "Cover Page"
+
+

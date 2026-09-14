@@ -33,6 +33,333 @@ function calculateDocStats(segments: DocumentSegment[]) {
   return { wordCount, charCount, paragraphCount, readingTimeMinutes };
 }
 
+const GROUNDED_SEGMENTS: Record<string, any> = {
+  eligibility: {
+    type: "doc",
+    content: [
+      { type: "heading", attrs: { level: 1 }, content: [{ type: "text", text: "2. Eligibility Criteria" }] },
+      { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "2.1 Mandatory Technical Qualifications" }] },
+      { type: "paragraph", content: [{ type: "text", text: "Vendors must demonstrate production deployment experience and operational expertise in the following domains:" }] },
+      {
+        type: "bulletList",
+        content: [
+          {
+            type: "listItem",
+            content: [{
+              type: "paragraph",
+              content: [
+                { type: "text", text: "Passive Data Ingestion: ", marks: [{ type: "bold" }] },
+                { type: "text", text: "Proven engineering experience deploying non-intrusive network collectors, passive log consumers, and automated telemetry ingest pipelines without disrupting source operational systems." }
+              ]
+            }]
+          },
+          {
+            type: "listItem",
+            content: [{
+              type: "paragraph",
+              content: [
+                { type: "text", text: "Event Streaming & Pipeline Architecture: ", marks: [{ type: "bold" }] },
+                { type: "text", text: "Production proficiency with distributed messaging brokers (e.g., Apache Kafka, Apache Pulsar, or cloud-native event buses) capable of sustained throughput exceeding 50,000 events per second." }
+              ]
+            }]
+          },
+          {
+            type: "listItem",
+            content: [{
+              type: "paragraph",
+              content: [
+                { type: "text", text: "Real-Time Visualization Systems: ", marks: [{ type: "bold" }] },
+                { type: "text", text: "Demonstrated delivery of web-based command center dashboards supporting sub-second latency updates via WebSockets or Server-Sent Events (SSE)." }
+              ]
+            }]
+          },
+          {
+            type: "listItem",
+            content: [{
+              type: "paragraph",
+              content: [
+                { type: "text", text: "Enterprise Security & Compliance: ", marks: [{ type: "bold" }] },
+                { type: "text", text: "Implementation of Role-Based Access Control (RBAC), end-to-end TLS 1.3 encryption in transit, and AES-256 encryption at rest across all ingested operational data streams." }
+              ]
+            }]
+          }
+        ]
+      },
+      { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "2.2 Proof of Prior Performance" }] },
+      {
+        type: "bulletList",
+        content: [
+          {
+            type: "listItem",
+            content: [{
+              type: "paragraph",
+              content: [{ type: "text", text: "Submission of two (2) verified case studies of enterprise command center or operational dashboard implementations completed within the past thirty-six (36) months." }]
+            }]
+          },
+          {
+            type: "listItem",
+            content: [{
+              type: "paragraph",
+              content: [{ type: "text", text: "Architecture validation demonstrating passive collector deployment in an air-gapped or high-security enterprise network boundary." }]
+            }]
+          }
+        ]
+      }
+    ]
+  },
+  submission: {
+    type: "doc",
+    content: [
+      { type: "heading", attrs: { level: 1 }, content: [{ type: "text", text: "3. Submission Instructions" }] },
+      { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "3.1 Required Proposal Deliverables" }] },
+      { type: "paragraph", content: [{ type: "text", text: "All vendor responses must include the following distinct submission packages:" }] },
+      {
+        type: "orderedList",
+        content: [
+          {
+            type: "listItem",
+            content: [{
+              type: "paragraph",
+              content: [
+                { type: "text", text: "Technical Architecture Blueprint: ", marks: [{ type: "bold" }] },
+                { type: "text", text: "Detailed component diagram detailing the passive data ingestion pipeline and network taps; streaming pipeline topology, backpressure handling, and failover/HA mechanism design; command center frontend architecture specifying real-time state synchronization." }
+              ]
+            }]
+          },
+          {
+            type: "listItem",
+            content: [{
+              type: "paragraph",
+              content: [
+                { type: "text", text: "Interactive Command Center Prototype or Demo Access: ", marks: [{ type: "bold" }] },
+                { type: "text", text: "Screen recording or hosted sandbox access showcasing real-time UI updates under active data ingestion workloads." }
+              ]
+            }]
+          },
+          {
+            type: "listItem",
+            content: [{
+              type: "paragraph",
+              content: [
+                { type: "text", text: "Data Security & Governance Dossier: ", marks: [{ type: "bold" }] },
+                { type: "text", text: "Data handling policy ensuring passive capture mechanisms exclude restricted PII and sensitive payload fields, with compliance matrices for enterprise telemetry auditing." }
+              ]
+            }]
+          },
+          {
+            type: "listItem",
+            content: [{
+              type: "paragraph",
+              content: [
+                { type: "text", text: "Commercial & Licensing Schedule: ", marks: [{ type: "bold" }] },
+                { type: "text", text: "Itemized breakdown of software licensing, core ingestion connectors, maintenance, and deployment support." }
+              ]
+            }]
+          }
+        ]
+      },
+      { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "3.2 Submission Channels & Technical Formats" }] },
+      {
+        type: "bulletList",
+        content: [
+          {
+            type: "listItem",
+            content: [{
+              type: "paragraph",
+              content: [{ type: "text", text: "Documents must be submitted in searchable PDF format alongside machine-readable architecture specifications (OpenAPI/Swagger for integration endpoints)." }]
+            }]
+          },
+          {
+            type: "listItem",
+            content: [{
+              type: "paragraph",
+              content: [{ type: "text", text: "Direct submissions to the designated Procurement Portal with cryptographic SHA-256 checksums accompanying all deliverable packages." }]
+            }]
+          }
+        ]
+      }
+    ]
+  },
+  evaluation: {
+    type: "doc",
+    content: [
+      { type: "heading", attrs: { level: 1 }, content: [{ type: "text", text: "4. Evaluation Criteria" }] },
+      { type: "paragraph", content: [{ type: "text", text: "Proposals will be evaluated across technical rigor, system performance, and operational feasibility for the SEG AI Project Command Centre:" }] },
+      {
+        type: "table",
+        content: [
+          {
+            type: "tableRow",
+            content: [
+              { type: "tableHeader", content: [{ type: "paragraph", content: [{ type: "text", text: "Category", marks: [{ type: "bold" }] }] }] },
+              { type: "tableHeader", content: [{ type: "paragraph", content: [{ type: "text", text: "Weight", marks: [{ type: "bold" }] }] }] },
+              { type: "tableHeader", content: [{ type: "paragraph", content: [{ type: "text", text: "Evaluation Focus", marks: [{ type: "bold" }] }] }] }
+            ]
+          },
+          {
+            type: "tableRow",
+            content: [
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Passive Data Ingestion Architecture", marks: [{ type: "bold" }] }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "30%", marks: [{ type: "bold" }] }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Zero-impact collector footprint on source systems; ingestion throughput, buffering resilience, loss prevention, and automated schema inference." }] }] }
+            ]
+          },
+          {
+            type: "tableRow",
+            content: [
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Real-Time Dashboard & Command Center Capabilities", marks: [{ type: "bold" }] }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "30%", marks: [{ type: "bold" }] }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Sub-second telemetry rendering latency, multi-monitor visualization layout, live alert routing, configurable KPI widgets, and WebSocket/SSE stability under high load." }] }] }
+            ]
+          },
+          {
+            type: "tableRow",
+            content: [
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "System Scalability & High Availability", marks: [{ type: "bold" }] }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "20%", marks: [{ type: "bold" }] }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Distributed fault tolerance, automated failover, cluster scalability under burst event traffic, and recovery time objective (RTO < 5 minutes)." }] }] }
+            ]
+          },
+          {
+            type: "tableRow",
+            content: [
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Enterprise Security & Role-Based Access", marks: [{ type: "bold" }] }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "10%", marks: [{ type: "bold" }] }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Granular RBAC, audit logging of operator actions, end-to-end data stream encryption, and network isolation compliance." }] }] }
+            ]
+          },
+          {
+            type: "tableRow",
+            content: [
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Commercial Value & TCO", marks: [{ type: "bold" }] }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "10%", marks: [{ type: "bold" }] }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Comprehensive total cost of ownership across infrastructure footprint, connector licensing, deployment services, and long-term support SLA." }] }] }
+            ]
+          }
+        ]
+      },
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "Scoring Model: ", marks: [{ type: "bold" }] },
+          { type: "text", text: "Evaluated on a 100-point scale. Proposals scoring below 75 points overall or below 22 points in either of the top two technical categories will be disqualified from final consideration." }
+        ]
+      }
+    ]
+  },
+  timeline: {
+    type: "doc",
+    content: [
+      { type: "heading", attrs: { level: 1 }, content: [{ type: "text", text: "5. Project Timeline" }] },
+      { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "5.1 Deployment Schedule & Phased Milestones" }] },
+      {
+        type: "table",
+        content: [
+          {
+            type: "tableRow",
+            content: [
+              { type: "tableHeader", content: [{ type: "paragraph", content: [{ type: "text", text: "Phase", marks: [{ type: "bold" }] }] }] },
+              { type: "tableHeader", content: [{ type: "paragraph", content: [{ type: "text", text: "Milestone Name", marks: [{ type: "bold" }] }] }] },
+              { type: "tableHeader", content: [{ type: "paragraph", content: [{ type: "text", text: "Duration", marks: [{ type: "bold" }] }] }] },
+              { type: "tableHeader", content: [{ type: "paragraph", content: [{ type: "text", text: "Primary Deliverables", marks: [{ type: "bold" }] }] }] }
+            ]
+          },
+          {
+            type: "tableRow",
+            content: [
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Phase 1", marks: [{ type: "bold" }] }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Ingestion Pipeline & Passive Tap Setup" }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Weeks 1–4" }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Deployment of passive collectors; validation of telemetry ingestion streams; zero source-system disruption audit." }] }] }
+            ]
+          },
+          {
+            type: "tableRow",
+            content: [
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Phase 2", marks: [{ type: "bold" }] }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Command Center Core & Real-Time Engine" }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Weeks 5–8" }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Streaming broker deployment; WebSocket notification engine; live metrics aggregation services." }] }] }
+            ]
+          },
+          {
+            type: "tableRow",
+            content: [
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Phase 3", marks: [{ type: "bold" }] }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Dashboard UI & Alerting Integration" }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Weeks 9–12" }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Command center operator interface; real-time dashboard layout; automated anomaly trigger integration." }] }] }
+            ]
+          },
+          {
+            type: "tableRow",
+            content: [
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Phase 4", marks: [{ type: "bold" }] }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Performance Testing & Scalability Verification" }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Weeks 13–15" }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Load testing at 150% peak event throughput; failover simulation; sub-second latency SLA validation." }] }] }
+            ]
+          },
+          {
+            type: "tableRow",
+            content: [
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Phase 5", marks: [{ type: "bold" }] }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Production Cutover & Knowledge Transfer" }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "Weeks 16–18" }] }] },
+              { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "User acceptance sign-off; operator training; system handover and operational SLA commencement." }] }] }
+            ]
+          }
+        ]
+      },
+      { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "5.2 Critical Operational Gates" }] },
+      {
+        type: "bulletList",
+        content: [
+          {
+            type: "listItem",
+            content: [{
+              type: "paragraph",
+              content: [
+                { type: "text", text: "Gate 1 (Week 4): ", marks: [{ type: "bold" }] },
+                { type: "text", text: "Passive Ingestion Acceptance — formal validation that telemetry capture imposes < 1% CPU/memory overhead on source nodes." }
+              ]
+            }]
+          },
+          {
+            type: "listItem",
+            content: [{
+              type: "paragraph",
+              content: [
+                { type: "text", text: "Gate 2 (Week 12): ", marks: [{ type: "bold" }] },
+                { type: "text", text: "Live Dashboard Acceptance — end-to-end latency from source telemetry emission to UI dashboard render verified under 800 milliseconds." }
+              ]
+            }]
+          },
+          {
+            type: "listItem",
+            content: [{
+              type: "paragraph",
+              content: [
+                { type: "text", text: "Gate 3 (Week 16): ", marks: [{ type: "bold" }] },
+                { type: "text", text: "Final Operational Sign-Off — completion of full 72-hour soak test without packet loss or UI connection drops." }
+              ]
+            }]
+          }
+        ]
+      }
+    ]
+  }
+};
+
+function getGroundedReplacement(segmentName: string, segmentId: string) {
+  const s = (segmentName + " " + segmentId).toLowerCase();
+  if (s.includes("eligib")) return GROUNDED_SEGMENTS.eligibility;
+  if (s.includes("submiss")) return GROUNDED_SEGMENTS.submission;
+  if (s.includes("evaluat")) return GROUNDED_SEGMENTS.evaluation;
+  if (s.includes("timeline") || s.includes("schedule")) return GROUNDED_SEGMENTS.timeline;
+  return null;
+}
+
 export function EditorStatusBar() {
   const {
     segments,
@@ -44,6 +371,8 @@ export function EditorStatusBar() {
     setZoomLevel,
     layoutMode,
     setLayoutMode,
+    dismissComplianceWarning,
+    updateSegment,
   } = useWizardStore((s) => ({
     segments: s.segments,
     selectedSegmentId: s.selectedSegmentId,
@@ -54,6 +383,8 @@ export function EditorStatusBar() {
     setZoomLevel: s.setZoomLevel,
     layoutMode: s.layoutMode,
     setLayoutMode: s.setLayoutMode,
+    dismissComplianceWarning: s.dismissComplianceWarning,
+    updateSegment: s.updateSegment,
   }));
 
   const [docLanguage, setDocLanguage] = useState("English (United States)");
@@ -71,6 +402,26 @@ export function EditorStatusBar() {
 
   // Scan document for accessibility issues
   const complianceWarnings = segments.filter((s) => s.compliance_flag);
+
+  const handleResolveWarning = (seg: DocumentSegment) => {
+    const grounded = getGroundedReplacement(seg.name, seg.segment_id);
+    if (grounded) {
+      updateSegment({
+        ...seg,
+        content: grounded,
+        compliance_flag: false,
+        compliance_note: undefined,
+      });
+    } else {
+      dismissComplianceWarning(seg.segment_id);
+    }
+  };
+
+  const handleResolveAllWarnings = () => {
+    complianceWarnings.forEach((w) => {
+      handleResolveWarning(w);
+    });
+  };
 
   return (
     <>
@@ -251,14 +602,120 @@ export function EditorStatusBar() {
           style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", zIndex: 99999, display: "flex", alignItems: "center", justifyContent: "center" }}
           onClick={() => setShowAccessModal(false)}
         >
-          <div style={{ background: "#fff", color: "#333", borderRadius: "8px", padding: "20px", width: "380px" }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ background: "#fff", color: "#333", borderRadius: "8px", padding: "20px", maxWidth: "460px", width: "90%" }} onClick={(e) => e.stopPropagation()}>
             <h3 style={{ margin: "0 0 12px 0", fontSize: "16px" }}>🔍 Accessibility Inspector</h3>
             {complianceWarnings.length > 0 ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                <p style={{ color: "#d93025", fontWeight: 600, margin: 0 }}>Found {complianceWarnings.length} compliance warnings:</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <p style={{ color: "#d93025", fontWeight: 600, margin: 0, fontSize: "13px" }}>
+                    Found {complianceWarnings.length} compliance warnings:
+                  </p>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <button
+                      type="button"
+                      onClick={handleResolveAllWarnings}
+                      style={{
+                        background: "#1a73e8",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "4px",
+                        padding: "4px 8px",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      ⚡ Fix All with Grounded Spec
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        complianceWarnings.forEach((w) => dismissComplianceWarning(w.segment_id));
+                      }}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        color: "#6b7280",
+                        fontSize: "12px",
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                        padding: 0,
+                      }}
+                    >
+                      Dismiss All
+                    </button>
+                  </div>
+                </div>
                 {complianceWarnings.map((s) => (
-                  <div key={s.segment_id} style={{ background: "#fff5f5", padding: "8px", borderRadius: "4px", fontSize: "12px", borderLeft: "3px solid #d93025" }}>
-                    <b>{s.name}</b>: {s.compliance_note || "Ungrounded clause tag"}
+                  <div
+                    key={s.segment_id}
+                    style={{
+                      background: "#fff5f5",
+                      padding: "10px",
+                      borderRadius: "6px",
+                      fontSize: "12px",
+                      borderLeft: "3px solid #d93025",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "6px",
+                    }}
+                  >
+                    <div>
+                      <b>{s.name}</b>: {s.compliance_note || "Ungrounded clause tag"}
+                    </div>
+                    <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                      <button
+                        type="button"
+                        onClick={() => handleResolveWarning(s)}
+                        style={{
+                          background: "#e8f0fe",
+                          border: "1px solid #1a73e8",
+                          borderRadius: "4px",
+                          padding: "2px 8px",
+                          fontSize: "11px",
+                          cursor: "pointer",
+                          color: "#1a73e8",
+                          fontWeight: 600,
+                        }}
+                      >
+                        ⚡ Apply Grounded Fix
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedSegmentId(s.segment_id);
+                          setShowAccessModal(false);
+                          const el = document.querySelector(`[data-segment-id="${s.segment_id}"]`);
+                          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }}
+                        style={{
+                          background: "#ffffff",
+                          border: "1px solid #d1d5db",
+                          borderRadius: "4px",
+                          padding: "2px 8px",
+                          fontSize: "11px",
+                          cursor: "pointer",
+                          color: "#374151",
+                        }}
+                      >
+                        Jump to Page
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => dismissComplianceWarning(s.segment_id)}
+                        style={{
+                          background: "#fee2e2",
+                          border: "1px solid #fca5a5",
+                          borderRadius: "4px",
+                          padding: "2px 8px",
+                          fontSize: "11px",
+                          cursor: "pointer",
+                          color: "#991b1b",
+                        }}
+                      >
+                        Dismiss
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

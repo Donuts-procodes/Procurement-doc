@@ -109,7 +109,6 @@ export function PrintPreviewModal({ isOpen, onClose, onConfirmDownload }: PrintP
 
             {segments.map((seg) => (
               <div key={seg.segment_id} className="preview-segment-block">
-                <h3 className="preview-segment-title">{seg.name}</h3>
                 <div
                   className="preview-segment-content"
                   dangerouslySetInnerHTML={{ __html: extractHtmlFromSegment(seg) }}

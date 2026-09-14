@@ -1,8 +1,10 @@
 import { create } from "zustand";
 import type {
   ChatMessage,
+  DocumentCheckpoint,
   DocumentSegment,
   DocumentStyleConfig,
+  GuidedParameters,
   KnowledgeFileSummary,
   LLMProvider,
   PageLayoutSize,
@@ -34,10 +36,21 @@ function getNextSessionIdNumber(sessions: SavedSession[]): number {
   return max + 1;
 }
 
+let typingCheckpointTimer: ReturnType<typeof setTimeout> | null = null;
+
 function getSavedApiKey(): { provider: LLMProvider; model: string; key: string } | null {
   try {
     const raw = localStorage.getItem("gdocs_ai_config");
-    return raw ? JSON.parse(raw) : null;
+    if (raw) return JSON.parse(raw);
+    
+    // Fallback to legacy keys
+    const provider = localStorage.getItem("gdocs_rag_provider") as LLMProvider | null;
+    const model = localStorage.getItem("gdocs_rag_model");
+    const key = localStorage.getItem("gdocs_rag_api_key");
+    if (provider && model && key) {
+      return { provider, model, key };
+    }
+    return null;
   } catch {
     return null;
   }
@@ -78,17 +91,22 @@ interface WizardState {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
 
+  guidedParams: GuidedParameters;
+  setGuidedParams: (params: Partial<GuidedParameters>) => void;
   setStep: (step: WizardStep) => void;
   setSession: (provider: LLMProvider, model: string, sessionId: string) => void;
   setKnowledgeBase: (kbId: string, files: KnowledgeFileSummary[]) => void;
-  setTemplateConfig: (procurementDocType: ProcurementDocType, numPages: number, prompt: string, contentDensity: "min" | "med" | "max") => void;
+  setTemplateConfig: (procurementDocType: ProcurementDocType, numPages: number, prompt: string, contentDensity: "min" | "med" | "max", guidedParams?: Partial<GuidedParameters>) => void;
+  missingFields: string[];
+  dismissMissingField: (field: string) => void;
   setGeneratedDocument: (
     documentId: string,
     lexicalState: Record<string, unknown>,
     pageTitles: string[],
     segments?: DocumentSegment[],
     styleConfig?: DocumentStyleConfig,
-    pageLayoutSize?: PageLayoutSize
+    pageLayoutSize?: PageLayoutSize,
+    missingFields?: string[]
   ) => void;
   setPendingQuestion: (documentId: string, question: string) => void;
   setSelectedSegmentId: (id: string | null) => void;
@@ -105,6 +123,16 @@ interface WizardState {
   addPage: (title?: string) => void;
   moveSegment: (segmentId: string, direction: "up" | "down") => void;
   deleteSegment: (segmentId: string) => void;
+  dismissComplianceWarning: (segmentId: string) => void;
+
+  checkpoints: DocumentCheckpoint[];
+  selectedVersionId: string | null;
+  canvasViewMode: "visual" | "markdown";
+
+  setCanvasViewMode: (mode: "visual" | "markdown") => void;
+  addCheckpoint: (checkpoint: DocumentCheckpoint) => void;
+  rollbackToCheckpoint: (versionId: string) => void;
+  previewCheckpoint: (versionId: string | null) => void;
 
   setApiKeyConfig: (provider: LLMProvider, model: string, key: string) => void;
   saveCurrentSession: (customTitle?: string) => void;
@@ -128,6 +156,8 @@ export const useWizardStore = create<WizardState>((set, get) => ({
   numPages: 5,
   prompt: initialSavedSessions.length > 0 ? initialSavedSessions[0].prompt : "",
   contentDensity: "med",
+  guidedParams: {},
+  missingFields: [],
   documentId: initialSavedSessions.length > 0 ? initialSavedSessions[0].documentId : null,
   segments: initialSavedSessions.length > 0 ? initialSavedSessions[0].segments : [],
   selectedSegmentId: null,
@@ -156,6 +186,10 @@ export const useWizardStore = create<WizardState>((set, get) => ({
   zoomLevel: 100,
   layoutMode: "print",
 
+  checkpoints: [],
+  selectedVersionId: null,
+  canvasViewMode: "visual",
+
   savedSessions: initialSavedSessions,
   savedApiKeyConfig: initialApiKeyConfig,
 
@@ -175,36 +209,96 @@ export const useWizardStore = create<WizardState>((set, get) => ({
     const config = { provider, model, key };
     try {
       localStorage.setItem("gdocs_ai_config", JSON.stringify(config));
+      localStorage.setItem("gdocs_rag_provider", provider);
+      localStorage.setItem("gdocs_rag_model", model);
+      localStorage.setItem("gdocs_rag_api_key", key);
     } catch (e) {
       console.error("Failed to save AI config to localStorage:", e);
     }
     set({ savedApiKeyConfig: config, provider, model, step: "knowledge-base", error: null });
   },
 
+  setGuidedParams: (params) => set((s) => ({ guidedParams: { ...s.guidedParams, ...params } })),
   setStep: (step) => set({ step }),
   setSession: (provider, model, sessionId) =>
     set({ provider, model, sessionId, step: "knowledge-base", error: null }),
-  setKnowledgeBase: (kbId, files) => set({ kbId, kbFiles: files, step: "template-config", error: null }),
-  setTemplateConfig: (procurementDocType, numPages, prompt, contentDensity) =>
-    set({ procurementDocType, numPages, prompt, contentDensity, step: "generating", error: null }),
-  setGeneratedDocument: (documentId, lexicalState, pageTitles, segments = [], styleConfig, pageLayoutSize) => {
+  setKnowledgeBase: (kbId, files) =>
+    set((s) => {
+      if (!kbId || files.length === 0) {
+        return { kbId: kbId || null, kbFiles: [], error: null };
+      }
+      const existing = s.kbId === kbId ? s.kbFiles : [];
+      const existingNames = new Set(existing.map((f) => f.filename));
+      const merged = [...existing, ...files.filter((f) => !existingNames.has(f.filename))];
+      return {
+        kbId,
+        kbFiles: merged,
+        step: s.step === "knowledge-base" ? "template-config" : s.step,
+        error: null,
+      };
+    }),
+  setTemplateConfig: (procurementDocType, numPages, prompt, contentDensity, guidedParams) =>
+    set((s) => ({
+      procurementDocType,
+      numPages,
+      prompt,
+      contentDensity,
+      guidedParams: guidedParams ? { ...s.guidedParams, ...guidedParams } : s.guidedParams,
+      step: "generating",
+      error: null,
+    })),
+  dismissMissingField: (field: string) =>
+    set((s) => ({ missingFields: s.missingFields.filter((f) => f !== field) })),
+  setGeneratedDocument: (documentId, lexicalState, _pageTitles, segments = [], styleConfig, pageLayoutSize, missingFields = []) => {
     set((state) => {
+      // Filter out accidental blank/empty segments to ensure professional document density
+      const nonEmptySegments = (segments || []).filter((seg) => {
+        if (!seg || !seg.content) return false;
+        if (typeof (seg.content as any) === "string") return ((seg.content as any) as string).trim().length > 0;
+        if (typeof seg.content === "object" && "content" in seg.content) {
+          const nodes = (seg.content as any).content || [];
+          if (nodes.length === 0) return false;
+          // Check if it's just a single empty paragraph or heading
+          const text = nodes
+            .map((n: any) => (n.content || []).map((c: any) => c.text || "").join(""))
+            .join("")
+            .trim();
+          const hasImage = nodes.some((n: any) => n.type === "image");
+          const hasTable = nodes.some((n: any) => n.type === "table");
+          return text.length > 0 || hasImage || hasTable;
+        }
+        return true;
+      });
+
       const nextStyleConfig = styleConfig ? { ...state.styleConfig, ...styleConfig } : state.styleConfig;
       const nextLayoutSize = pageLayoutSize || state.pageLayoutSize;
       const nextState = {
         documentId,
         lexicalState,
-        pageTitles,
-        segments,
+        pageTitles: nonEmptySegments.map((s) => s.name),
+        segments: nonEmptySegments,
         styleConfig: nextStyleConfig,
         pageLayoutSize: nextLayoutSize,
+        missingFields: missingFields && missingFields.length > 0 ? missingFields : state.missingFields,
         historyStack: state.segments.length ? [...state.historyStack, state.segments] : state.historyStack,
         futureStack: [],
         step: "editor" as WizardStep,
         error: null,
         pendingQuestion: null,
       };
-      setTimeout(() => get().saveCurrentSession(), 100);
+
+      const initialCheckpoint: DocumentCheckpoint = {
+        version_id: `v_${Date.now().toString(36)}`,
+        timestamp: Date.now(),
+        label: "Initial Generation",
+        segments: nonEmptySegments,
+        lexical_state: lexicalState,
+        trigger: "generation",
+      };
+      setTimeout(() => {
+        get().addCheckpoint(initialCheckpoint);
+        get().saveCurrentSession();
+      }, 100);
       return nextState;
     });
   },
@@ -251,6 +345,21 @@ export const useWizardStore = create<WizardState>((set, get) => ({
         futureStack: [],
       };
     });
+
+    if (typingCheckpointTimer) clearTimeout(typingCheckpointTimer);
+    typingCheckpointTimer = setTimeout(() => {
+      const current = get();
+      if (current.segments.length > 0) {
+        current.addCheckpoint({
+          version_id: `v_type_${Date.now().toString(36)}`,
+          timestamp: Date.now(),
+          label: `Typing auto-save (${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })})`,
+          segments: current.segments,
+          trigger: "user_typing",
+        });
+      }
+    }, 1500);
+
     setTimeout(() => get().saveCurrentSession(), 100);
   },
   undo: () =>
@@ -340,6 +449,47 @@ export const useWizardStore = create<WizardState>((set, get) => ({
         selectedSegmentId: state.selectedSegmentId === segmentId ? null : state.selectedSegmentId,
         historyStack: [...state.historyStack, state.segments],
         futureStack: [],
+      };
+    }),
+
+  dismissComplianceWarning: (segmentId) =>
+    set((state) => ({
+      segments: state.segments.map((s) =>
+        s.segment_id === segmentId
+          ? { ...s, compliance_flag: false, compliance_note: undefined }
+          : s
+      ),
+    })),
+
+  setCanvasViewMode: (canvasViewMode) => set({ canvasViewMode }),
+
+  addCheckpoint: (checkpoint) =>
+    set((state) => {
+      // 30-item ring buffer
+      const updated = [checkpoint, ...state.checkpoints.filter((c) => c.version_id !== checkpoint.version_id)].slice(0, 30);
+      return { checkpoints: updated, selectedVersionId: checkpoint.version_id };
+    }),
+
+  rollbackToCheckpoint: (versionId) =>
+    set((state) => {
+      const target = state.checkpoints.find((c) => c.version_id === versionId);
+      if (!target) return state;
+      return {
+        segments: target.segments,
+        selectedVersionId: versionId,
+        historyStack: [...state.historyStack, state.segments],
+        futureStack: [],
+      };
+    }),
+
+  previewCheckpoint: (versionId) =>
+    set((state) => {
+      if (!versionId) return { selectedVersionId: null };
+      const target = state.checkpoints.find((c) => c.version_id === versionId);
+      if (!target) return state;
+      return {
+        segments: target.segments,
+        selectedVersionId: versionId,
       };
     }),
 

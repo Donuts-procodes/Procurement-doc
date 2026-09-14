@@ -51,14 +51,21 @@ export function IconDock() {
       style={{
         display: "flex",
         flexDirection: "column",
-        width: "180px",
-        padding: "16px 8px",
-        background: isDarkMode ? "rgba(30, 41, 59, 0.5)" : "transparent",
+        width: "190px",
+        flexShrink: 0,
+        padding: "16px 10px",
+        background: isDarkMode ? "rgba(30, 41, 59, 0.6)" : "#ffffff",
+        backdropFilter: "blur(12px)",
+        border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e2e8f0",
         borderRadius: "16px",
-        marginRight: "8px",
+        boxShadow: isDarkMode ? "0 8px 24px rgba(0,0,0,0.25)" : "0 4px 16px rgba(0,0,0,0.04)",
+        position: "sticky",
+        top: "24px",
+        alignSelf: "flex-start",
+        boxSizing: "border-box",
       }}
     >
-      <div style={{ padding: "0 12px", marginBottom: "20px", fontSize: "12px", fontWeight: 700, color: isDarkMode ? "#94a3b8" : "#64748b", textTransform: "uppercase", letterSpacing: "1px" }}>
+      <div style={{ padding: "0 10px", marginBottom: "14px", fontSize: "11px", fontWeight: 700, color: isDarkMode ? "#94a3b8" : "#64748b", textTransform: "uppercase", letterSpacing: "1px" }}>
         Steps
       </div>
       

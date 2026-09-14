@@ -17,7 +17,13 @@ logging.basicConfig(
 logger = logging.getLogger("gdocs.main")
 logger.info("Initializing FastAPI Backend with verbose logging...")
 
-from app.api.v1 import routes_generate, routes_knowledge, routes_session, routes_sessions
+from app.api.v1 import (
+    routes_generate,
+    routes_knowledge,
+    routes_session,
+    routes_sessions,
+    routes_subagents,
+)
 
 
 @asynccontextmanager
@@ -44,10 +50,17 @@ app = FastAPI(title="Docs RAG Clone API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+    ],
+    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 from fastapi.exceptions import RequestValidationError
@@ -80,6 +93,7 @@ app.include_router(routes_session.router, prefix="/api/v1")
 app.include_router(routes_knowledge.router, prefix="/api/v1")
 app.include_router(routes_generate.router, prefix="/api/v1")
 app.include_router(routes_sessions.router, prefix="/api/v1")
+app.include_router(routes_subagents.router, prefix="/api/v1/subagents", tags=["Subagents"])
 
 
 @app.get("/api/health")

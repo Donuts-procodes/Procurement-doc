@@ -90,16 +90,45 @@ class PaymentScheduleSummary(BaseModel):
 
 def compute_payment_schedule(data: PaymentScheduleData) -> PaymentScheduleSummary:
     val = Decimal(f"{data.total_contract_value:.2f}")
-    computed: list[ComputedMilestone] = []
+    if not data.milestones:
+        return PaymentScheduleSummary(total_contract_value=val, milestones=[])
 
-    for m in data.milestones:
-        pct = Decimal(str(m.percentage)) / Decimal("100")
-        amt = (val * pct).quantize(Decimal("0.01"))
+    raw_percentages = [Decimal(str(m.percentage)) for m in data.milestones]
+    total_pct = sum(raw_percentages)
+
+    # Normalize percentages to 100% if LLM output does not sum to 100%
+    normalized_percentages: list[float] = []
+    if total_pct > Decimal("0") and total_pct != Decimal("100"):
+        running_pct = Decimal("0")
+        for i, raw_pct in enumerate(raw_percentages):
+            if i == len(raw_percentages) - 1:
+                final_pct = Decimal("100.00") - running_pct
+                normalized_percentages.append(float(final_pct))
+            else:
+                norm = ((raw_pct / total_pct) * Decimal("100")).quantize(Decimal("0.01"))
+                running_pct += norm
+                normalized_percentages.append(float(norm))
+    else:
+        normalized_percentages = [float(p) for p in raw_percentages]
+
+    computed: list[ComputedMilestone] = []
+    allocated_total = Decimal("0.00")
+
+    for i, m in enumerate(data.milestones):
+        pct_float = normalized_percentages[i]
+        pct_dec = Decimal(str(pct_float)) / Decimal("100")
+
+        if i == len(data.milestones) - 1:
+            amt = val - allocated_total
+        else:
+            amt = (val * pct_dec).quantize(Decimal("0.01"))
+            allocated_total += amt
+
         computed.append(
             ComputedMilestone(
                 milestone_number=m.milestone_number,
                 description=m.description,
-                percentage=m.percentage,
+                percentage=pct_float,
                 amount=amt,
                 due_condition=m.due_condition,
             )

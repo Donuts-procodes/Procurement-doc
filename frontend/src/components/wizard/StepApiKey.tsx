@@ -11,21 +11,24 @@ const FALLBACK_MODELS: Record<LLMProvider, string[]> = {
 
 export function StepApiKey() {
   const setSession = useWizardStore((s) => s.setSession);
+  const setApiKeyConfig = useWizardStore((s) => s.setApiKeyConfig);
+  const savedApiKeyConfig = useWizardStore((s) => s.savedApiKeyConfig);
   const setError = useWizardStore((s) => s.setError);
   const error = useWizardStore((s) => s.error);
 
   const [providerModels, setProviderModels] = useState<Record<LLMProvider, string[]>>(FALLBACK_MODELS);
   
-  // Restore saved API key and provider/model from localStorage if available
+  // Restore saved API key and provider/model from savedApiKeyConfig or localStorage
   const [provider, setProvider] = useState<LLMProvider>(
-    () => (localStorage.getItem("gdocs_rag_provider") as LLMProvider) || "openai"
+    () => savedApiKeyConfig?.provider || (localStorage.getItem("gdocs_rag_provider") as LLMProvider) || "openai"
   );
   const [model, setModel] = useState<string>(
-    () => localStorage.getItem("gdocs_rag_model") || "gpt-4o"
+    () => savedApiKeyConfig?.model || localStorage.getItem("gdocs_rag_model") || "gpt-4o"
   );
   const [apiKey, setApiKey] = useState<string>(
-    () => localStorage.getItem("gdocs_rag_api_key") || ""
+    () => savedApiKeyConfig?.key || localStorage.getItem("gdocs_rag_api_key") || ""
   );
+  const [showKey, setShowKey] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -55,10 +58,8 @@ export function StepApiKey() {
     setSubmitting(true);
     try {
       const trimmedKey = apiKey.trim();
-      // Persist in localStorage so user never has to re-enter
-      localStorage.setItem("gdocs_rag_provider", provider);
-      localStorage.setItem("gdocs_rag_model", model);
-      localStorage.setItem("gdocs_rag_api_key", trimmedKey);
+      // Sync store AI config (which also populates gdocs_ai_config and gdocs_rag_* keys)
+      setApiKeyConfig(provider, model, trimmedKey);
 
       const session = await createSession(provider, model, trimmedKey);
       setSession(session.provider, session.model, session.session_id);
@@ -70,6 +71,11 @@ export function StepApiKey() {
   }
 
   const availableModels = providerModels[provider] ?? FALLBACK_MODELS[provider] ?? [];
+  const placeholderMap: Record<LLMProvider, string> = {
+    openai: "sk-proj-...",
+    gemini: "AIzaSy...",
+    anthropic: "sk-ant-api03-...",
+  };
 
   return (
     <div className="wizard-step">
@@ -102,12 +108,40 @@ export function StepApiKey() {
 
       <label className="field">
         <span>API key</span>
-        <input
-          type="password"
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
-          placeholder="sk-..."
-        />
+        <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+          <input
+            type={showKey ? "text" : "password"}
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !submitting) {
+                handleSubmit();
+              }
+            }}
+            placeholder={placeholderMap[provider] || "sk-..."}
+            style={{ width: "100%", paddingRight: "42px", boxSizing: "border-box" }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowKey(!showKey)}
+            style={{
+              position: "absolute",
+              right: "8px",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "15px",
+              color: "#64748b",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "4px",
+            }}
+            title={showKey ? "Hide API key" : "Show API key"}
+          >
+            {showKey ? "🙈" : "👁️"}
+          </button>
+        </div>
       </label>
 
       {error && <p className="error-text">{error}</p>}

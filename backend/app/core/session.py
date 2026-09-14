@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import json
+import logging
 import uuid
 from dataclasses import dataclass, field, asdict
 from typing import Any
 
 from app.schemas.schemas import LLMProvider
 from app.core.redis_client import get_redis_client
+
+logger = logging.getLogger("gdocs.session")
 
 
 @dataclass
@@ -34,12 +37,25 @@ class SessionConfig:
 
     @classmethod
     def from_dict(cls, data: dict) -> SessionConfig:
+        from app.core.config import settings
         chat_hist = [ChatMessageEntry(**msg) for msg in data.get("chat_history", [])]
+        provider = LLMProvider(data["provider"])
+        api_key = data.get("api_key") or ""
+        
+        # If stored key is empty or a placeholder, fallback to server environment key
+        if not api_key or api_key.startswith("sk-test") or api_key.startswith("sk-fallback"):
+            if provider == LLMProvider.OPENAI and settings.OPENAI_API_KEY:
+                api_key = settings.OPENAI_API_KEY
+            elif provider == LLMProvider.GEMINI and settings.GEMINI_API_KEY:
+                api_key = settings.GEMINI_API_KEY
+            elif provider == LLMProvider.ANTHROPIC and settings.ANTHROPIC_API_KEY:
+                api_key = settings.ANTHROPIC_API_KEY
+
         return cls(
             session_id=data["session_id"],
-            provider=LLMProvider(data["provider"]),
+            provider=provider,
             model=data["model"],
-            api_key=data["api_key"],
+            api_key=api_key,
             chat_history=chat_hist
         )
 
@@ -76,10 +92,20 @@ class SessionStore:
         if not data:
             return None
         from app.agents.procurement_graph import ProcurementState
-        return ProcurementState(**json.loads(data))
+        try:
+            return ProcurementState(**json.loads(data))
+        except Exception as e:
+            logger.warning(f"Failed to deserialize graph state for {document_id}: {e}")
+            return None
 
     def save_graph_state(self, document_id: str, state: Any) -> None:
-        self.redis.set(f"graph_state:{document_id}", json.dumps(state.model_dump()), ex=86400)
+        if hasattr(state, "model_dump_json"):
+            payload = state.model_dump_json()
+        elif hasattr(state, "model_dump"):
+            payload = json.dumps(state.model_dump(), default=str)
+        else:
+            payload = json.dumps(state, default=str)
+        self.redis.set(f"graph_state:{document_id}", payload, ex=86400)
 
 
 session_store = SessionStore()

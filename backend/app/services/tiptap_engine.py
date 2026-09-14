@@ -12,11 +12,23 @@ from app.services.structured_tables import (
 
 import re
 
+def tiptap_citation_node(source_id: str, title: str = "", snippet: str = "", url: str = "") -> dict[str, Any]:
+    return {
+        "type": "citation",
+        "attrs": {
+            "source_id": source_id,
+            "title": title or f"Primary Source [{source_id}]",
+            "snippet": snippet or "Verified primary source grounding context.",
+            "url": url or f"#citation-{source_id}",
+        },
+    }
+
+
 def parse_markdown_inlines(text: str) -> list[dict[str, Any]]:
     if not text:
         return [{"type": "text", "text": ""}]
 
-    pattern = re.compile(r'(\*\*.+?\*\*|__.+?__|[*].+?[*]|_.+?_)')
+    pattern = re.compile(r'(\[\^.+?\]|\*\*.+?\*\*|__.+?__|[*].+?[*]|_.+?_)')
     tokens = []
     last_idx = 0
 
@@ -28,7 +40,10 @@ def parse_markdown_inlines(text: str) -> list[dict[str, Any]]:
                 tokens.append({"type": "text", "text": plain_part})
 
         matched_str = match.group(0)
-        if matched_str.startswith("**") and matched_str.endswith("**"):
+        if matched_str.startswith("[^") and matched_str.endswith("]"):
+            source_id = matched_str[2:-1].strip()
+            tokens.append(tiptap_citation_node(source_id))
+        elif matched_str.startswith("**") and matched_str.endswith("**"):
             inner = matched_str[2:-2]
             tokens.append({"type": "text", "text": inner, "marks": [{"type": "bold"}]})
         elif matched_str.startswith("__") and matched_str.endswith("__"):
@@ -48,6 +63,7 @@ def parse_markdown_inlines(text: str) -> list[dict[str, Any]]:
             tokens.append({"type": "text", "text": remaining})
 
     return tokens if tokens else [{"type": "text", "text": text}]
+
 
 
 def docx_paragraph_node(text: str, bold: bool = False) -> dict[str, Any]:
@@ -79,9 +95,14 @@ def parse_markdown_table_str(text: str) -> dict[str, Any] | None:
     if len(pipe_lines) < 2:
         return None
 
+    # Require a markdown divider line like |---|---| to confirm it is a valid markdown table
+    has_divider = any(re.match(r"^\|[\s\-:|]+\|$", l) for l in pipe_lines)
+    if not has_divider:
+        return None
+
     # Filter out divider lines like |---|---|
     table_lines = [l for l in pipe_lines if not re.match(r"^\|[\s\-:|]+\|$", l)]
-    if not table_lines:
+    if len(table_lines) < 2:
         return None
 
     def split_row(row_str: str) -> list[str]:
@@ -113,6 +134,12 @@ def tiptap_paragraph_node(text: str) -> dict[str, Any]:
         return tiptap_heading_node(trimmed[3:].strip(), level=2)
     if trimmed.startswith("# "):
         return tiptap_heading_node(trimmed[2:].strip(), level=1)
+
+    # Convert standalone bold heading lines (e.g. "**1.1 Technical Requirements:**") to H3
+    if (trimmed.startswith("**") and trimmed.endswith("**") and len(trimmed) > 4 and "\n" not in trimmed) or \
+       (trimmed.startswith("**") and trimmed.endswith(":**") and len(trimmed) > 5 and "\n" not in trimmed):
+        inner_title = trimmed.strip("*").rstrip(":").strip()
+        return tiptap_heading_node(inner_title, level=3)
 
     if trimmed.startswith(("- ", "* ", "• ")):
         bullet_text = trimmed[2:].strip()
@@ -233,12 +260,28 @@ def tiptap_table_node(headers: list[str], rows: list[list[str]]) -> dict[str, An
     }
 
 
-def tiptap_callout_node(title: str, text: str, icon: str = "ℹ️") -> dict[str, Any]:
+def tiptap_figure_caption_node(caption: str) -> dict[str, Any]:
+    clean = re.sub(r'^(?:Figure:?\s*)+', '', caption.strip())
     return {
         "type": "paragraph",
         "content": [
-            {"type": "text", "text": f"{icon} {title}: ", "marks": [{"type": "bold"}]},
-            *parse_markdown_inlines(text),
+            {"type": "text", "text": "Figure: ", "marks": [{"type": "bold"}]},
+            {"type": "text", "text": clean, "marks": [{"type": "italic"}]},
+        ],
+    }
+
+
+def tiptap_callout_node(title: str, text: str, icon: str = "ℹ️") -> dict[str, Any]:
+    return {
+        "type": "blockquote",
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [
+                    {"type": "text", "text": f"{icon} {title}: ", "marks": [{"type": "bold"}]},
+                    *parse_markdown_inlines(text),
+                ],
+            }
         ],
     }
 
@@ -247,7 +290,7 @@ def tiptap_metric_badge_node(metrics: list[tuple[str, str]]) -> dict[str, Any]:
     nodes = []
     for label, val in metrics:
         nodes.append({"type": "text", "text": f"[{label}: ", "marks": [{"type": "bold"}]})
-        nodes.append({"type": "text", "text": f"{val}]  "})
+        nodes.append({"type": "text", "text": f"{val}]  ", "marks": [{"type": "bold"}]})
     return {
         "type": "paragraph",
         "content": nodes,
@@ -256,10 +299,7 @@ def tiptap_metric_badge_node(metrics: list[tuple[str, str]]) -> dict[str, Any]:
 
 def tiptap_divider_node() -> dict[str, Any]:
     return {
-        "type": "paragraph",
-        "content": [
-            {"type": "text", "text": "────────────────────────────────────────────────────────────"}
-        ],
+        "type": "horizontalRule",
     }
 
 

@@ -58,18 +58,18 @@ Designed specifically for enterprise merchants, engineering firms, and procureme
 ```bash
 cd backend
 
-# Create and activate virtual environment
-python -m venv .venv
+# Create and activate virtual environment with uv
+uv venv
 # Windows (PowerShell):
 .\.venv\Scripts\Activate.ps1
 # Mac/Linux:
 source .venv/bin/activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies using uv
+uv pip install -r requirements.txt
 
 # Launch FastAPI development server
-fastapi dev app/main.py
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 *Backend runs locally at: `http://localhost:8000`*
 

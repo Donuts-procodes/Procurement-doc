@@ -42,13 +42,14 @@ html, body, #root {
   overflow-x: hidden;
   display: flex;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 24px 20px;
   box-sizing: border-box;
 }
 
 .wizard {
   width: 100%;
-  max-width: 560px;
+  max-width: 1380px;
+  box-sizing: border-box;
 }
 
 .wizard__progress {
@@ -80,9 +81,10 @@ html, body, #root {
 }
 .wizard__card {
   background: #ffffff;
-  border-radius: 12px;
-  padding: 32px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  padding: clamp(20px, 2.5vw, 36px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
 }
 
 .wizard-step h2 {
@@ -1079,8 +1081,9 @@ img {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   width: 794px; /* Standard A4 Paper Width at 96 DPI */
   min-height: 1123px; /* Standard A4 Paper Height at 96 DPI (210mm x 297mm) */
+  height: auto;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
   margin: 0 auto;
 }
 
@@ -1126,10 +1129,16 @@ img {
 .ProseMirror h2,
 .ProseMirror h3,
 .ProseMirror h4 {
-  margin-top: 1.2em;
-  margin-bottom: 0.4em;
+  margin-top: 1.1em;
+  margin-bottom: 0.35em;
   font-weight: 700;
   color: var(--doc-accent-color, #1a73e8);
+  page-break-after: avoid;
+  break-after: avoid;
+  break-after: avoid-page;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  line-height: 1.3;
 }
 
 .ProseMirror h1 { font-size: 24px; }
@@ -1137,38 +1146,92 @@ img {
 .ProseMirror h3 { font-size: 16px; }
 .ProseMirror h4 { font-size: 14px; }
 
+/* Enterprise Callout Box & Blockquote Polish */
+.ProseMirror blockquote {
+  border-left: 4px solid var(--doc-accent-color, #1a73e8) !important;
+  background: #f8fafc !important;
+  padding: 10px 16px !important;
+  margin: 12px 0 !important;
+  border-radius: 0 6px 6px 0 !important;
+  font-style: normal !important;
+  color: #1e293b !important;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.ProseMirror blockquote p {
+  margin: 0 !important;
+  line-height: 1.5 !important;
+}
+
+/* Guardrails against awkward page breaks across tables, callouts, and diagrams */
+.ProseMirror table,
+.ProseMirror tr,
+.ProseMirror blockquote,
+.custom-callout-node,
+.custom-metric-badge-node,
+.resizable-image-wrapper {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+@media print {
+  .segment-block {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    page-break-after: always;
+    break-after: page;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+  .segment-block:last-child {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+  .page-card-header,
+  .canvas-top-control-bar,
+  .compliance-banner,
+  .doc-ruler {
+    display: none !important;
+  }
+}
+
 /* Flexbox & Image Text-Wrap Flow Styles */
 .resizable-image-wrapper {
   display: flex;
-  margin: 16px 0;
+  margin: 14px 0;
   width: 100%;
 }
 
 .resizable-image-wrapper.img-node-left {
   float: left;
-  margin: 6px 24px 14px 0;
+  margin: 6px 20px 12px 0;
   width: auto;
   clear: left;
 }
 
 .resizable-image-wrapper.img-node-right {
   float: right;
-  margin: 6px 0 14px 24px;
+  margin: 6px 0 12px 20px;
   width: auto;
   clear: right;
 }
 
 .resizable-image-wrapper.img-node-center {
   justify-content: center;
-  margin: 20px auto;
+  margin: 16px auto;
   clear: both;
 }
 
 .ProseMirror img {
   max-width: 100%;
+  max-height: 480px;
   height: auto;
   border-radius: 8px;
   transition: all 0.2s ease;
+  object-fit: contain;
 }
 
 .ProseMirror img.img-align-left,
@@ -1482,6 +1545,18 @@ img {
 
 .segment-block__body {
   line-height: 1.6;
+  min-height: 180px;
+  cursor: text;
+}
+
+.ProseMirror {
+  outline: none;
+  min-height: 180px;
+  cursor: text;
+}
+
+.ProseMirror:focus {
+  outline: none;
 }
 
 .gdocs-context-menu {

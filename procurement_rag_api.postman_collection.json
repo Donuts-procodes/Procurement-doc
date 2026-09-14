@@ -1,0 +1,570 @@
+{
+  "info": {
+    "_postman_id": "b2f6797a-97a1-4ce8-8889-4d6cb960714b",
+    "name": "Procurement RAG Document API",
+    "description": "Comprehensive Postman collection for the Procurement RAG Agent and Document Generation API (FastAPI backend on port 8000).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "YOUR_API_KEY",
+      "type": "string"
+    },
+    {
+      "key": "sessionId",
+      "value": "session_sample_101",
+      "type": "string"
+    },
+    {
+      "key": "kbId",
+      "value": "kb_default",
+      "type": "string"
+    },
+    {
+      "key": "documentId",
+      "value": "doc_sample_101",
+      "type": "string"
+    },
+    {
+      "key": "segmentId",
+      "value": "seg_sample_1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "System & Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            },
+            "description": "Check if backend server is online and operational."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Session & Providers",
+      "item": [
+        {
+          "name": "List Supported Providers & Models",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/session/providers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "session",
+                "providers"
+              ]
+            },
+            "description": "Retrieve supported LLM providers (openai, gemini, anthropic) and available models."
+          }
+        },
+        {
+          "name": "Create AI Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var data = pm.response.json();",
+                  "    if (data.session_id) {",
+                  "        pm.collectionVariables.set('sessionId', data.session_id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"openai\",\n  \"model\": \"gpt-4o\",\n  \"api_key\": \"{{apiKey}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "session"
+              ]
+            },
+            "description": "Initialize an in-memory session config for LLM orchestrations."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Knowledge Ingestion & Compliance",
+      "item": [
+        {
+          "name": "Upload General Knowledge Files",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var data = pm.response.json();",
+                  "    if (data.kb_id) {",
+                  "        pm.collectionVariables.set('kbId', data.kb_id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/knowledge/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "knowledge",
+                "upload"
+              ]
+            },
+            "description": "Upload general reference files (PDF, DOCX, TXT) into ChromaDB vector store."
+          }
+        },
+        {
+          "name": "Upload Procurement Policy Files",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/knowledge/policy-upload?kb_id={{kbId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "knowledge",
+                "policy-upload"
+              ],
+              "query": [
+                {
+                  "key": "kb_id",
+                  "value": "{{kbId}}"
+                }
+              ]
+            },
+            "description": "Upload organizational policy & compliance rules into ChromaDB."
+          }
+        },
+        {
+          "name": "Upload Vendor History Files",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/knowledge/vendor-upload?kb_id={{kbId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "knowledge",
+                "vendor-upload"
+              ],
+              "query": [
+                {
+                  "key": "kb_id",
+                  "value": "{{kbId}}"
+                }
+              ]
+            },
+            "description": "Upload past vendor proposals, scorecards, or history into ChromaDB."
+          }
+        },
+        {
+          "name": "List Mandatory Clauses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/clauses?doc_type=RFP",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clauses"
+              ],
+              "query": [
+                {
+                  "key": "doc_type",
+                  "value": "RFP"
+                }
+              ]
+            },
+            "description": "Get mandatory clauses, tags, and compliance standards for a document type."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Document Generation & Refinement",
+      "item": [
+        {
+          "name": "Initial Generate Document",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var data = pm.response.json();",
+                  "    if (data.document_id) {",
+                  "        pm.collectionVariables.set('documentId', data.document_id);",
+                  "    }",
+                  "    if (data.segments && data.segments.length > 0) {",
+                  "        pm.collectionVariables.set('segmentId', data.segments[0].segment_id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{sessionId}}\",\n  \"kb_id\": \"{{kbId}}\",\n  \"procurement_doc_type\": \"RFP\",\n  \"template_id\": \"rfp_enterprise\",\n  \"num_pages\": 5,\n  \"page_layout_size\": \"A4\",\n  \"prompt\": \"Draft a cloud migration RFP for a healthcare portal with strict HIPAA compliance\",\n  \"content_density\": \"med\",\n  \"provider\": \"openai\",\n  \"model\": \"gpt-4o\",\n  \"api_key\": \"{{apiKey}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/generate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "generate"
+              ]
+            },
+            "description": "Trigger multi-agent pipeline (Planner, Retrieval, Line-Item Math, Parallel Writers, Verifier)."
+          }
+        },
+        {
+          "name": "Answer Clarifying Question",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{sessionId}}\",\n  \"document_id\": \"{{documentId}}\",\n  \"answer\": \"Target completion within 9 months, budget cap is $1.2M USD.\",\n  \"content_density\": \"med\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/generate/answer",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "generate",
+                "answer"
+              ]
+            },
+            "description": "Submit an answer to an agent clarifying question to continue generation."
+          }
+        },
+        {
+          "name": "Refine Document Segment (Page / Section)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{sessionId}}\",\n  \"document_id\": \"{{documentId}}\",\n  \"segment_id\": \"{{segmentId}}\",\n  \"instruction\": \"Expand the evaluation criteria into a detailed 4-column rubric table with score weights.\",\n  \"content_density\": \"med\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/generate/refine-segment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "generate",
+                "refine-segment"
+              ]
+            },
+            "description": "Refine, expand, or rewrite a specific document segment/page via LangGraph edit graph."
+          }
+        },
+        {
+          "name": "Refine Selected Text Snippet",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{sessionId}}\",\n  \"selection_text\": \"The vendor must provide standard SLA terms.\",\n  \"instruction\": \"Make this specific to 99.99% uptime with 15-minute response for P1 incidents.\",\n  \"content_density\": \"med\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/generate/refine-selection",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "generate",
+                "refine-selection"
+              ]
+            },
+            "description": "Surgically rewrite a highlighted sentence or paragraph in the document editor."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Document Audit & Workflow",
+      "item": [
+        {
+          "name": "Update Document Status",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/document/{{documentId}}/status?status=UNDER_REVIEW&actor=Lead_Procurement_Officer",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "document",
+                "{{documentId}}",
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "UNDER_REVIEW"
+                },
+                {
+                  "key": "actor",
+                  "value": "Lead_Procurement_Officer"
+                }
+              ]
+            },
+            "description": "Update workflow status of a document (e.g. DRAFT -> UNDER_REVIEW -> APPROVED)."
+          }
+        },
+        {
+          "name": "Get Document Audit Log",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/document/{{documentId}}/audit-log",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "document",
+                "{{documentId}}",
+                "audit-log"
+              ]
+            },
+            "description": "Fetch audit trail of status transitions, timestamps, and actors."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Persistent Workspace Sessions (PostgreSQL)",
+      "item": [
+        {
+          "name": "List Saved Sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sessions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions"
+              ]
+            },
+            "description": "Fetch all saved workspace sessions from PostgreSQL database."
+          }
+        },
+        {
+          "name": "Save / Update Workspace Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"_id\": \"session_101\",\n  \"id_number\": 101,\n  \"display_id\": \"#101\",\n  \"session_id\": \"{{sessionId}}\",\n  \"document_id\": \"{{documentId}}\",\n  \"title\": \"Cloud Migration RFP Document\",\n  \"created_at\": \"2026-09-11 12:00:00\",\n  \"updated_at\": \"2026-09-11 12:00:00\",\n  \"provider\": \"openai\",\n  \"model\": \"gpt-4o\",\n  \"kb_id\": \"{{kbId}}\",\n  \"procurement_doc_type\": \"RFP\",\n  \"prompt\": \"Draft a cloud migration RFP\",\n  \"segments\": [],\n  \"prompt_log\": [],\n  \"style_config\": {\n    \"fontFamily\": \"Inter, sans-serif\",\n    \"fontSize\": \"15px\",\n    \"accentColor\": \"#1a73e8\"\n  },\n  \"page_layout_size\": \"A4\",\n  \"doc_status\": \"DRAFT\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sessions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions"
+              ]
+            },
+            "description": "Persist full document, style configuration, and prompt history into PostgreSQL."
+          }
+        },
+        {
+          "name": "Get Session By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sessions/{{sessionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions",
+                "{{sessionId}}"
+              ]
+            },
+            "description": "Fetch a specific saved session document from PostgreSQL."
+          }
+        },
+        {
+          "name": "Delete Session By ID",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sessions/{{sessionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sessions",
+                "{{sessionId}}"
+              ]
+            },
+            "description": "Delete a saved session from PostgreSQL."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -135,7 +135,7 @@ export function ContextMenu({ onClose }: ContextMenuProps) {
         className="context-menu-item"
         onClick={() => {
           if (activeEditor) {
-            activeEditor.chain().focus().toggleHighlight({ color: "#fef08a" }).run();
+            activeEditor.chain?.()?.focus()?.toggleHighlight({ color: "#fef08a" })?.run();
           }
           onClose();
         }}
@@ -148,7 +148,7 @@ export function ContextMenu({ onClose }: ContextMenuProps) {
         className="context-menu-item"
         onClick={() => {
           if (activeEditor) {
-            activeEditor.chain().focus().toggleItalic().run();
+            activeEditor.chain?.()?.focus()?.toggleItalic()?.run();
           }
           onClose();
         }}
@@ -187,7 +187,7 @@ export function ContextMenu({ onClose }: ContextMenuProps) {
         className="context-menu-item"
         onClick={() => {
           if (activeEditor) {
-            activeEditor.chain().focus().unsetAllMarks().clearNodes().run();
+            activeEditor.chain?.()?.focus()?.unsetAllMarks()?.clearNodes()?.run();
           }
           onClose();
         }}
