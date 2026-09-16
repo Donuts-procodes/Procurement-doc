@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "b2f6797a-97a1-4ce8-8889-4d6cb960714b",
-    "name": "Procurement RAG Document API",
-    "description": "Comprehensive Postman collection for the Procurement RAG Agent and Document Generation API (FastAPI backend on port 8000).",
+    "name": "Procurement RAG Document API (Complete)",
+    "description": "Complete Postman collection for all endpoints exposed by the FastAPI Swagger API documentation (port 8000).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -39,10 +39,10 @@
   ],
   "item": [
     {
-      "name": "System & Health",
+      "name": "default",
       "item": [
         {
-          "name": "Health Check",
+          "name": "Health",
           "request": {
             "method": "GET",
             "header": [],
@@ -56,16 +56,16 @@
                 "health"
               ]
             },
-            "description": "Check if backend server is online and operational."
+            "description": "Backend health check."
           }
         }
       ]
     },
     {
-      "name": "Session & Providers",
+      "name": "session",
       "item": [
         {
-          "name": "List Supported Providers & Models",
+          "name": "List Providers",
           "request": {
             "method": "GET",
             "header": [],
@@ -81,11 +81,11 @@
                 "providers"
               ]
             },
-            "description": "Retrieve supported LLM providers (openai, gemini, anthropic) and available models."
+            "description": "List supported LLM providers and models."
           }
         },
         {
-          "name": "Create AI Session",
+          "name": "Create Session",
           "event": [
             {
               "listen": "test",
@@ -125,16 +125,16 @@
                 "session"
               ]
             },
-            "description": "Initialize an in-memory session config for LLM orchestrations."
+            "description": "Initialize a provider session."
           }
         }
       ]
     },
     {
-      "name": "Knowledge Ingestion & Compliance",
+      "name": "procurement",
       "item": [
         {
-          "name": "Upload General Knowledge Files",
+          "name": "Upload Knowledge Files",
           "event": [
             {
               "listen": "test",
@@ -176,11 +176,11 @@
                 "upload"
               ]
             },
-            "description": "Upload general reference files (PDF, DOCX, TXT) into ChromaDB vector store."
+            "description": "Upload general knowledge reference files."
           }
         },
         {
-          "name": "Upload Procurement Policy Files",
+          "name": "Upload Policy Files",
           "request": {
             "method": "POST",
             "header": [],
@@ -212,11 +212,11 @@
                 }
               ]
             },
-            "description": "Upload organizational policy & compliance rules into ChromaDB."
+            "description": "Upload policy compliance documents."
           }
         },
         {
-          "name": "Upload Vendor History Files",
+          "name": "Upload Vendor Files",
           "request": {
             "method": "POST",
             "header": [],
@@ -248,11 +248,11 @@
                 }
               ]
             },
-            "description": "Upload past vendor proposals, scorecards, or history into ChromaDB."
+            "description": "Upload past vendor proposals/history."
           }
         },
         {
-          "name": "List Mandatory Clauses",
+          "name": "List Clauses",
           "request": {
             "method": "GET",
             "header": [],
@@ -273,16 +273,127 @@
                 }
               ]
             },
-            "description": "Get mandatory clauses, tags, and compliance standards for a document type."
+            "description": "Retrieve mandatory clauses for document type."
+          }
+        },
+        {
+          "name": "Update Document Status",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/document/{{documentId}}/status?status=UNDER_REVIEW&actor=Procurement_Lead",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "document",
+                "{{documentId}}",
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "UNDER_REVIEW"
+                },
+                {
+                  "key": "actor",
+                  "value": "Procurement_Lead"
+                }
+              ]
+            },
+            "description": "Update workflow status for a document."
+          }
+        },
+        {
+          "name": "Get Audit Log",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/document/{{documentId}}/audit-log",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "document",
+                "{{documentId}}",
+                "audit-log"
+              ]
+            },
+            "description": "Retrieve full document audit history log."
           }
         }
       ]
     },
     {
-      "name": "Document Generation & Refinement",
+      "name": "generate",
       "item": [
         {
-          "name": "Initial Generate Document",
+          "name": "Get Preflight Blueprint (/preflight/blueprint)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Draft an enterprise cloud migration RFP with strict SOC2 and HIPAA compliance for a 12-month timeline under 1.5M budget.\",\n  \"detected_doc_type\": \"RFP\",\n  \"target_pages\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/generate/preflight/blueprint",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "generate",
+                "preflight",
+                "blueprint"
+              ]
+            },
+            "description": "Analyze intent and compute section blueprints & parameters."
+          }
+        },
+        {
+          "name": "Get Preflight Blueprint (/blueprint)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Draft an enterprise cloud migration RFP with strict SOC2 and HIPAA compliance for a 12-month timeline under 1.5M budget.\",\n  \"detected_doc_type\": \"RFP\",\n  \"target_pages\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/generate/blueprint",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "generate",
+                "blueprint"
+              ]
+            },
+            "description": "Direct route for preflight blueprint computation."
+          }
+        },
+        {
+          "name": "Generate",
           "event": [
             {
               "listen": "test",
@@ -312,7 +423,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"session_id\": \"{{sessionId}}\",\n  \"kb_id\": \"{{kbId}}\",\n  \"procurement_doc_type\": \"RFP\",\n  \"template_id\": \"rfp_enterprise\",\n  \"num_pages\": 5,\n  \"page_layout_size\": \"A4\",\n  \"prompt\": \"Draft a cloud migration RFP for a healthcare portal with strict HIPAA compliance\",\n  \"content_density\": \"med\",\n  \"provider\": \"openai\",\n  \"model\": \"gpt-4o\",\n  \"api_key\": \"{{apiKey}}\"\n}"
+              "raw": "{\n  \"session_id\": \"{{sessionId}}\",\n  \"kb_id\": \"{{kbId}}\",\n  \"procurement_doc_type\": \"RFP\",\n  \"template_id\": \"rfp_enterprise\",\n  \"num_pages\": 5,\n  \"page_layout_size\": \"A4\",\n  \"prompt\": \"Draft a cloud migration RFP for a healthcare portal with strict HIPAA compliance\",\n  \"content_density\": \"med\",\n  \"provider\": \"openai\",\n  \"model\": \"gpt-4o\",\n  \"api_key\": \"{{apiKey}}\",\n  \"buyer_name\": \"HealthTech Global Corp\",\n  \"vendor_name\": \"CloudOps Premier Partners\",\n  \"budget_estimate\": \"$1,200,000 USD\",\n  \"delivery_timeline\": \"9 months from execution\",\n  \"compliance_frameworks\": [\n    \"HIPAA\",\n    \"SOC2 Type II\"\n  ],\n  \"primary_tech\": \"AWS GovCloud / EKS\",\n  \"sla_target\": \"99.99% system availability\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/generate",
@@ -325,11 +436,11 @@
                 "generate"
               ]
             },
-            "description": "Trigger multi-agent pipeline (Planner, Retrieval, Line-Item Math, Parallel Writers, Verifier)."
+            "description": "Synchronous multi-agent document generation."
           }
         },
         {
-          "name": "Answer Clarifying Question",
+          "name": "Answer Question",
           "request": {
             "method": "POST",
             "header": [
@@ -354,11 +465,11 @@
                 "answer"
               ]
             },
-            "description": "Submit an answer to an agent clarifying question to continue generation."
+            "description": "Answer clarifying question from the agent."
           }
         },
         {
-          "name": "Refine Document Segment (Page / Section)",
+          "name": "Refine Segment",
           "request": {
             "method": "POST",
             "header": [
@@ -383,11 +494,11 @@
                 "refine-segment"
               ]
             },
-            "description": "Refine, expand, or rewrite a specific document segment/page via LangGraph edit graph."
+            "description": "Refine specific segment or page."
           }
         },
         {
-          "name": "Refine Selected Text Snippet",
+          "name": "Refine Selection",
           "request": {
             "method": "POST",
             "header": [
@@ -412,73 +523,82 @@
                 "refine-selection"
               ]
             },
-            "description": "Surgically rewrite a highlighted sentence or paragraph in the document editor."
-          }
-        }
-      ]
-    },
-    {
-      "name": "Document Audit & Workflow",
-      "item": [
-        {
-          "name": "Update Document Status",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/document/{{documentId}}/status?status=UNDER_REVIEW&actor=Lead_Procurement_Officer",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "document",
-                "{{documentId}}",
-                "status"
-              ],
-              "query": [
-                {
-                  "key": "status",
-                  "value": "UNDER_REVIEW"
-                },
-                {
-                  "key": "actor",
-                  "value": "Lead_Procurement_Officer"
-                }
-              ]
-            },
-            "description": "Update workflow status of a document (e.g. DRAFT -> UNDER_REVIEW -> APPROVED)."
+            "description": "Surgically rewrite selected text."
           }
         },
         {
-          "name": "Get Document Audit Log",
+          "name": "Generate Document Stream",
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{sessionId}}\",\n  \"kb_id\": \"{{kbId}}\",\n  \"procurement_doc_type\": \"RFP\",\n  \"template_id\": \"rfp_enterprise\",\n  \"num_pages\": 5,\n  \"page_layout_size\": \"A4\",\n  \"prompt\": \"Draft an enterprise cloud migration RFP\",\n  \"content_density\": \"med\",\n  \"provider\": \"openai\",\n  \"model\": \"gpt-4o\",\n  \"api_key\": \"{{apiKey}}\"\n}"
+            },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/document/{{documentId}}/audit-log",
+              "raw": "{{baseUrl}}/api/v1/generate/stream",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "v1",
-                "document",
-                "{{documentId}}",
-                "audit-log"
+                "generate",
+                "stream"
               ]
             },
-            "description": "Fetch audit trail of status transitions, timestamps, and actors."
+            "description": "Stream live generation events (SSE)."
+          }
+        },
+        {
+          "name": "Targeted Selection Stream",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{sessionId}}\",\n  \"prompt\": \"Strengthen penalty clause for delayed milestone deliveries.\",\n  \"target_node_id\": \"node_clause_12\",\n  \"selection_text\": \"Late delivery incurs standard 1% per week penalty.\",\n  \"context_window\": \"Section 8: Liquidated Damages and Delivery Schedules.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/generate/stream-selection",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "generate",
+                "stream-selection"
+              ]
+            },
+            "description": "Stream inline selection refinement with patch events."
           }
         }
       ]
     },
     {
-      "name": "Persistent Workspace Sessions (PostgreSQL)",
+      "name": "sessions",
       "item": [
         {
-          "name": "List Saved Sessions",
+          "name": "List Sessions",
           "request": {
             "method": "GET",
             "header": [],
@@ -493,11 +613,11 @@
                 "sessions"
               ]
             },
-            "description": "Fetch all saved workspace sessions from PostgreSQL database."
+            "description": "Retrieve all saved sessions."
           }
         },
         {
-          "name": "Save / Update Workspace Session",
+          "name": "Save Session",
           "request": {
             "method": "POST",
             "header": [
@@ -508,7 +628,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"_id\": \"session_101\",\n  \"id_number\": 101,\n  \"display_id\": \"#101\",\n  \"session_id\": \"{{sessionId}}\",\n  \"document_id\": \"{{documentId}}\",\n  \"title\": \"Cloud Migration RFP Document\",\n  \"created_at\": \"2026-09-11 12:00:00\",\n  \"updated_at\": \"2026-09-11 12:00:00\",\n  \"provider\": \"openai\",\n  \"model\": \"gpt-4o\",\n  \"kb_id\": \"{{kbId}}\",\n  \"procurement_doc_type\": \"RFP\",\n  \"prompt\": \"Draft a cloud migration RFP\",\n  \"segments\": [],\n  \"prompt_log\": [],\n  \"style_config\": {\n    \"fontFamily\": \"Inter, sans-serif\",\n    \"fontSize\": \"15px\",\n    \"accentColor\": \"#1a73e8\"\n  },\n  \"page_layout_size\": \"A4\",\n  \"doc_status\": \"DRAFT\"\n}"
+              "raw": "{\n  \"_id\": \"session_101\",\n  \"id_number\": 101,\n  \"display_id\": \"#101\",\n  \"session_id\": \"{{sessionId}}\",\n  \"document_id\": \"{{documentId}}\",\n  \"title\": \"Cloud Migration RFP Document\",\n  \"created_at\": \"2026-09-11 12:00:00\",\n  \"updated_at\": \"2026-09-11 12:00:00\",\n  \"provider\": \"openai\",\n  \"model\": \"gpt-4o\",\n  \"kb_id\": \"{{kbId}}\",\n  \"kb_files\": [],\n  \"procurement_doc_type\": \"RFP\",\n  \"prompt\": \"Draft a cloud migration RFP\",\n  \"segments\": [],\n  \"prompt_log\": [],\n  \"style_config\": {\n    \"fontFamily\": \"Inter, sans-serif\",\n    \"fontSize\": \"15px\",\n    \"accentColor\": \"#1a73e8\"\n  },\n  \"page_layout_size\": \"A4\",\n  \"doc_status\": \"DRAFT\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/sessions",
@@ -521,11 +641,11 @@
                 "sessions"
               ]
             },
-            "description": "Persist full document, style configuration, and prompt history into PostgreSQL."
+            "description": "Save or update a workspace session."
           }
         },
         {
-          "name": "Get Session By ID",
+          "name": "Get Session",
           "request": {
             "method": "GET",
             "header": [],
@@ -541,11 +661,11 @@
                 "{{sessionId}}"
               ]
             },
-            "description": "Fetch a specific saved session document from PostgreSQL."
+            "description": "Fetch a specific session by ID."
           }
         },
         {
-          "name": "Delete Session By ID",
+          "name": "Delete Session",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -561,7 +681,113 @@
                 "{{sessionId}}"
               ]
             },
-            "description": "Delete a saved session from PostgreSQL."
+            "description": "Delete session by ID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subagents",
+      "item": [
+        {
+          "name": "Get Live Subagents Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subagents/live",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "subagents",
+                "live"
+              ]
+            },
+            "description": "Get current state of registered subagents."
+          }
+        },
+        {
+          "name": "Get Recent Subagent Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subagents/events?limit=50",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "subagents",
+                "events"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "session_id",
+                  "value": "{{sessionId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "subagent_id",
+                  "value": "subagent_deep_research",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get recent subagent activity logs."
+          }
+        },
+        {
+          "name": "Stream Subagent Activities",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subagents/stream",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "subagents",
+                "stream"
+              ]
+            },
+            "description": "Stream live subagent activity events (SSE)."
+          }
+        },
+        {
+          "name": "Clear Subagent Activity",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/subagents/clear",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "subagents",
+                "clear"
+              ]
+            },
+            "description": "Clear recorded subagent activity logs."
           }
         }
       ]

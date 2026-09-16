@@ -1,0 +1,2163 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Docs RAG Clone API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/session/providers": {
+      "get": {
+        "tags": [
+          "session"
+        ],
+        "summary": "List Providers",
+        "operationId": "list_providers_api_v1_session_providers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "propertyNames": {
+                    "$ref": "#/components/schemas/LLMProvider"
+                  },
+                  "type": "object",
+                  "title": "Response List Providers Api V1 Session Providers Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/session": {
+      "post": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Create Session",
+        "operationId": "create_session_api_v1_session_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/upload": {
+      "post": {
+        "tags": [
+          "procurement"
+        ],
+        "summary": "Upload Knowledge Files",
+        "operationId": "upload_knowledge_files_api_v1_knowledge_upload_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kb Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_knowledge_files_api_v1_knowledge_upload_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeUploadResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/policy-upload": {
+      "post": {
+        "tags": [
+          "procurement"
+        ],
+        "summary": "Upload Policy Files",
+        "operationId": "upload_policy_files_api_v1_knowledge_policy_upload_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_policy_files_api_v1_knowledge_policy_upload_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeUploadResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/vendor-upload": {
+      "post": {
+        "tags": [
+          "procurement"
+        ],
+        "summary": "Upload Vendor Files",
+        "operationId": "upload_vendor_files_api_v1_knowledge_vendor_upload_post",
+        "parameters": [
+          {
+            "name": "kb_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kb Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_vendor_files_api_v1_knowledge_vendor_upload_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeUploadResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/clauses": {
+      "get": {
+        "tags": [
+          "procurement"
+        ],
+        "summary": "List Clauses",
+        "operationId": "list_clauses_api_v1_clauses_get",
+        "parameters": [
+          {
+            "name": "doc_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ProcurementDocType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Doc Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/document/{document_id}/status": {
+      "post": {
+        "tags": [
+          "procurement"
+        ],
+        "summary": "Update Document Status",
+        "operationId": "update_document_status_api_v1_document__document_id__status_post",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Document Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DocumentStatus"
+            }
+          },
+          {
+            "name": "actor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "Reviewer",
+              "title": "Actor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/document/{document_id}/audit-log": {
+      "get": {
+        "tags": [
+          "procurement"
+        ],
+        "summary": "Get Audit Log",
+        "operationId": "get_audit_log_api_v1_document__document_id__audit_log_get",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generate/preflight/blueprint": {
+      "post": {
+        "tags": [
+          "generate"
+        ],
+        "summary": "Get Preflight Blueprint",
+        "operationId": "get_preflight_blueprint_api_v1_generate_preflight_blueprint_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreflightBlueprintRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreflightBlueprintResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generate/blueprint": {
+      "post": {
+        "tags": [
+          "generate"
+        ],
+        "summary": "Get Preflight Blueprint",
+        "operationId": "get_preflight_blueprint_api_v1_generate_blueprint_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreflightBlueprintRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreflightBlueprintResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generate": {
+      "post": {
+        "tags": [
+          "generate"
+        ],
+        "summary": "Generate",
+        "operationId": "generate_api_v1_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InitialGenerateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generate/answer": {
+      "post": {
+        "tags": [
+          "generate"
+        ],
+        "summary": "Answer Question",
+        "operationId": "answer_question_api_v1_generate_answer_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerQuestionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generate/refine-segment": {
+      "post": {
+        "tags": [
+          "generate"
+        ],
+        "summary": "Refine Segment",
+        "operationId": "refine_segment_api_v1_generate_refine_segment_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefineSegmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generate/refine-selection": {
+      "post": {
+        "tags": [
+          "generate"
+        ],
+        "summary": "Refine Selection",
+        "operationId": "refine_selection_api_v1_generate_refine_selection_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefineSelectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generate/stream": {
+      "post": {
+        "tags": [
+          "generate"
+        ],
+        "summary": "Generate Document Stream",
+        "operationId": "generate_document_stream_api_v1_generate_stream_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InitialGenerateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generate/stream-selection": {
+      "post": {
+        "tags": [
+          "generate"
+        ],
+        "summary": "Targeted Selection Stream",
+        "operationId": "targeted_selection_stream_api_v1_generate_stream_selection_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetedInlineRefineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "List Sessions",
+        "description": "Retrieve all saved workspace sessions from PostgreSQL.",
+        "operationId": "list_sessions_api_v1_sessions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Save Session",
+        "description": "Save or update a workspace session in PostgreSQL.",
+        "operationId": "save_session_api_v1_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionDocPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Get Session",
+        "description": "Fetch a specific workspace session by ID from PostgreSQL.",
+        "operationId": "get_session_api_v1_sessions__session_id__get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Delete Session",
+        "description": "Delete a workspace session by ID from PostgreSQL.",
+        "operationId": "delete_session_api_v1_sessions__session_id__delete",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/subagents/live": {
+      "get": {
+        "tags": [
+          "Subagents"
+        ],
+        "summary": "Get Live Subagents Summary",
+        "description": "Returns current runtime state of all registered subagents, active workloads, and recent activity.",
+        "operationId": "get_live_subagents_summary_api_v1_subagents_live_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubagentLiveSummaryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/subagents/events": {
+      "get": {
+        "tags": [
+          "Subagents"
+        ],
+        "summary": "Get Recent Subagent Events",
+        "description": "Retrieve historical subagent activity events with optional session or subagent filter.",
+        "operationId": "get_recent_subagent_events_api_v1_subagents_events_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "subagent_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subagent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SubagentActivityEventDTO"
+                  },
+                  "title": "Response Get Recent Subagent Events Api V1 Subagents Events Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/subagents/stream": {
+      "get": {
+        "tags": [
+          "Subagents"
+        ],
+        "summary": "Stream Subagent Activities",
+        "description": "Server-Sent Events (SSE) feed streaming live subagent actions as they occur in real time.",
+        "operationId": "stream_subagent_activities_api_v1_subagents_stream_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/subagents/clear": {
+      "post": {
+        "tags": [
+          "Subagents"
+        ],
+        "summary": "Clear Subagent Activity",
+        "description": "Clears buffered activity history.",
+        "operationId": "clear_subagent_activity_api_v1_subagents_clear_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Clear Subagent Activity Api V1 Subagents Clear Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Api Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnswerQuestionRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "document_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Id"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "content_density": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "min",
+                  "med",
+                  "max"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Density",
+            "default": "med"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "answer"
+        ],
+        "title": "AnswerQuestionRequest"
+      },
+      "Body_upload_knowledge_files_api_v1_knowledge_upload_post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "contentMediaType": "application/octet-stream"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "Body_upload_knowledge_files_api_v1_knowledge_upload_post"
+      },
+      "Body_upload_policy_files_api_v1_knowledge_policy_upload_post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "contentMediaType": "application/octet-stream"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "Body_upload_policy_files_api_v1_knowledge_policy_upload_post"
+      },
+      "Body_upload_vendor_files_api_v1_knowledge_vendor_upload_post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "contentMediaType": "application/octet-stream"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "Body_upload_vendor_files_api_v1_knowledge_vendor_upload_post"
+      },
+      "DocumentStatus": {
+        "type": "string",
+        "enum": [
+          "DRAFT",
+          "UNDER_REVIEW",
+          "APPROVED",
+          "SENT"
+        ],
+        "title": "DocumentStatus"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "InitialGenerateRequest": {
+        "properties": {
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "kb_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kb Id"
+          },
+          "procurement_doc_type": {
+            "title": "Procurement Doc Type",
+            "default": "RFP"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id",
+            "default": "rfp_enterprise"
+          },
+          "num_pages": {
+            "title": "Num Pages",
+            "default": 5
+          },
+          "page_layout_size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Layout Size",
+            "default": "A4"
+          },
+          "prompt": {
+            "title": "Prompt",
+            "default": "Generate procurement proposal document"
+          },
+          "content_density": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "min",
+                  "med",
+                  "max"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Density",
+            "default": "med"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LLMProvider"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "api_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key"
+          },
+          "buyer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buyer Name"
+          },
+          "vendor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vendor Name"
+          },
+          "budget_estimate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Estimate"
+          },
+          "delivery_timeline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Timeline"
+          },
+          "compliance_frameworks": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Compliance Frameworks"
+          },
+          "primary_tech": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Primary Tech"
+          },
+          "sla_target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sla Target"
+          }
+        },
+        "type": "object",
+        "title": "InitialGenerateRequest"
+      },
+      "KnowledgeFileSummary": {
+        "properties": {
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "chunk_count": {
+            "type": "integer",
+            "title": "Chunk Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "filename",
+          "chunk_count"
+        ],
+        "title": "KnowledgeFileSummary"
+      },
+      "KnowledgeUploadResponse": {
+        "properties": {
+          "kb_id": {
+            "type": "string",
+            "title": "Kb Id"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeFileSummary"
+            },
+            "type": "array",
+            "title": "Files"
+          },
+          "total_chunks": {
+            "type": "integer",
+            "title": "Total Chunks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kb_id",
+          "files",
+          "total_chunks"
+        ],
+        "title": "KnowledgeUploadResponse"
+      },
+      "LLMProvider": {
+        "type": "string",
+        "enum": [
+          "openai",
+          "gemini",
+          "anthropic"
+        ],
+        "title": "LLMProvider"
+      },
+      "PreflightBlueprintRequest": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "title": "Prompt",
+            "default": "Generate procurement proposal document"
+          },
+          "kb_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kb Id"
+          },
+          "current_template_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Template Id"
+          },
+          "current_doc_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Doc Type"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          }
+        },
+        "type": "object",
+        "title": "PreflightBlueprintRequest"
+      },
+      "PreflightBlueprintResponse": {
+        "properties": {
+          "recommended_template_id": {
+            "type": "string",
+            "title": "Recommended Template Id"
+          },
+          "recommended_doc_type": {
+            "$ref": "#/components/schemas/ProcurementDocType"
+          },
+          "template_title": {
+            "type": "string",
+            "title": "Template Title"
+          },
+          "template_icon": {
+            "type": "string",
+            "title": "Template Icon"
+          },
+          "confidence_score": {
+            "type": "number",
+            "title": "Confidence Score"
+          },
+          "match_reason": {
+            "type": "string",
+            "title": "Match Reason"
+          },
+          "recommended_num_pages": {
+            "type": "integer",
+            "title": "Recommended Num Pages"
+          },
+          "guided_params": {
+            "$ref": "#/components/schemas/PreflightGuidedParams"
+          },
+          "outline_sections": {
+            "items": {
+              "$ref": "#/components/schemas/PreflightSectionOutline"
+            },
+            "type": "array",
+            "title": "Outline Sections"
+          },
+          "detected_keywords": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Detected Keywords"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recommended_template_id",
+          "recommended_doc_type",
+          "template_title",
+          "template_icon",
+          "confidence_score",
+          "match_reason",
+          "recommended_num_pages",
+          "guided_params",
+          "outline_sections",
+          "detected_keywords"
+        ],
+        "title": "PreflightBlueprintResponse"
+      },
+      "PreflightGuidedParams": {
+        "properties": {
+          "buyer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buyer Name"
+          },
+          "vendor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vendor Name"
+          },
+          "budget_estimate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Estimate"
+          },
+          "delivery_timeline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Timeline"
+          },
+          "primary_tech": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Primary Tech"
+          },
+          "compliance_frameworks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Compliance Frameworks"
+          },
+          "sla_target": {
+            "type": "string",
+            "title": "Sla Target",
+            "default": "99.9% (Standard)"
+          }
+        },
+        "type": "object",
+        "title": "PreflightGuidedParams"
+      },
+      "PreflightSectionOutline": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "section_type": {
+            "type": "string",
+            "title": "Section Type"
+          },
+          "guidance": {
+            "type": "string",
+            "title": "Guidance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "index",
+          "title",
+          "section_type",
+          "guidance"
+        ],
+        "title": "PreflightSectionOutline"
+      },
+      "ProcurementDocType": {
+        "type": "string",
+        "enum": [
+          "RFP",
+          "RFQ",
+          "RFI",
+          "PURCHASE_ORDER",
+          "VENDOR_CONTRACT",
+          "SOW",
+          "VENDOR_SCORECARD"
+        ],
+        "title": "ProcurementDocType"
+      },
+      "RefineSegmentRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "document_id": {
+            "type": "string",
+            "title": "Document Id"
+          },
+          "segment_id": {
+            "type": "string",
+            "title": "Segment Id"
+          },
+          "instruction": {
+            "type": "string",
+            "title": "Instruction"
+          },
+          "content_density": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "min",
+                  "med",
+                  "max"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Density",
+            "default": "med"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "document_id",
+          "segment_id",
+          "instruction"
+        ],
+        "title": "RefineSegmentRequest"
+      },
+      "RefineSelectionRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "selection_text": {
+            "type": "string",
+            "title": "Selection Text"
+          },
+          "instruction": {
+            "type": "string",
+            "title": "Instruction"
+          },
+          "content_density": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "min",
+                  "med",
+                  "max"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Density",
+            "default": "med"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "selection_text",
+          "instruction"
+        ],
+        "title": "RefineSelectionRequest"
+      },
+      "SessionCreateRequest": {
+        "properties": {
+          "provider": {
+            "$ref": "#/components/schemas/LLMProvider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "api_key": {
+            "type": "string",
+            "minLength": 8,
+            "title": "Api Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "model",
+          "api_key"
+        ],
+        "title": "SessionCreateRequest"
+      },
+      "SessionDocPayload": {
+        "properties": {
+          "_id": {
+            "type": "string",
+            "title": "Id",
+            "default": ""
+          },
+          "id_number": {
+            "type": "integer",
+            "title": "Id Number",
+            "default": 101
+          },
+          "display_id": {
+            "type": "string",
+            "title": "Display Id",
+            "default": "#101"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "document_id": {
+            "type": "string",
+            "title": "Document Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "kb_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kb Id"
+          },
+          "kb_files": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Kb Files"
+          },
+          "procurement_doc_type": {
+            "type": "string",
+            "title": "Procurement Doc Type",
+            "default": "RFP"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt",
+            "default": ""
+          },
+          "segments": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Segments"
+          },
+          "prompt_log": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Prompt Log"
+          },
+          "style_config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Style Config"
+          },
+          "page_layout_size": {
+            "type": "string",
+            "title": "Page Layout Size",
+            "default": "A4"
+          },
+          "doc_status": {
+            "type": "string",
+            "title": "Doc Status",
+            "default": "DRAFT"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "document_id",
+          "title",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SessionDocPayload"
+      },
+      "SessionResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/LLMProvider"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "provider",
+          "model"
+        ],
+        "title": "SessionResponse"
+      },
+      "SubagentActivityEventDTO": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "timestamp": {
+            "type": "number",
+            "title": "Timestamp"
+          },
+          "subagent_id": {
+            "type": "string",
+            "title": "Subagent Id"
+          },
+          "subagent_name": {
+            "type": "string",
+            "title": "Subagent Name"
+          },
+          "icon": {
+            "type": "string",
+            "title": "Icon"
+          },
+          "activity_type": {
+            "type": "string",
+            "title": "Activity Type"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "details": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Details"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "RUNNING"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "timestamp",
+          "subagent_id",
+          "subagent_name",
+          "icon",
+          "activity_type",
+          "message"
+        ],
+        "title": "SubagentActivityEventDTO"
+      },
+      "SubagentLiveSummaryResponse": {
+        "properties": {
+          "active_count": {
+            "type": "integer",
+            "title": "Active Count"
+          },
+          "subagents": {
+            "items": {
+              "$ref": "#/components/schemas/SubagentStatusDTO"
+            },
+            "type": "array",
+            "title": "Subagents"
+          },
+          "recent_events": {
+            "items": {
+              "$ref": "#/components/schemas/SubagentActivityEventDTO"
+            },
+            "type": "array",
+            "title": "Recent Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "active_count",
+          "subagents",
+          "recent_events"
+        ],
+        "title": "SubagentLiveSummaryResponse"
+      },
+      "SubagentStatusDTO": {
+        "properties": {
+          "subagent_id": {
+            "type": "string",
+            "title": "Subagent Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "icon": {
+            "type": "string",
+            "title": "Icon"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "current_activity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Activity"
+          },
+          "last_active_timestamp": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Active Timestamp"
+          },
+          "total_runs": {
+            "type": "integer",
+            "title": "Total Runs",
+            "default": 0
+          },
+          "average_duration_ms": {
+            "type": "number",
+            "title": "Average Duration Ms",
+            "default": 0.0
+          },
+          "error_count": {
+            "type": "integer",
+            "title": "Error Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "subagent_id",
+          "name",
+          "icon",
+          "role",
+          "status"
+        ],
+        "title": "SubagentStatusDTO"
+      },
+      "TargetedInlineRefineRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt"
+          },
+          "target_node_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Node Id"
+          },
+          "selection_text": {
+            "type": "string",
+            "title": "Selection Text"
+          },
+          "context_window": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Window"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "prompt",
+          "selection_text"
+        ],
+        "title": "TargetedInlineRefineRequest"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
