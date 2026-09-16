@@ -18,8 +18,8 @@ export default function App() {
   const setStep = useWizardStore((s) => s.setStep);
   const [isSavedSessionsOpen, setIsSavedSessionsOpen] = useState(false);
   const [isAiConfigOpen, setIsAiConfigOpen] = useState(false);
-  const [isLeftCollapsed, setIsLeftCollapsed] = useState(false);
-  const [isRightCollapsed, setIsRightCollapsed] = useState(false);
+  const [isCopilotCollapsed, setIsCopilotCollapsed] = useState(false);
+  const [isTabsCollapsed, setIsTabsCollapsed] = useState(false);
   const [leftPaneMode, setLeftPaneMode] = useState<"stream" | "config">("stream");
   const [streamEvents, setStreamEvents] = useState<StreamEvent[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -225,88 +225,125 @@ export default function App() {
         <Route
           path="/document"
           element={
-            <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", width: "100%", overflow: "hidden" }}>
-              <EditorRibbon onOpenSavedSessions={() => setIsSavedSessionsOpen(true)} />
-              <main style={{ flex: 1, minHeight: 0, overflow: "hidden", display: "flex", width: "100%" }}>
+            <div
+              className="copilot-document-layout"
+              style={{
+                flex: 1,
+                minHeight: 0,
+                gridTemplateColumns: `${isCopilotCollapsed ? "44px" : "380px"} 1fr`,
+                transition: "grid-template-columns 0.25s ease",
+              }}
+            >
+              {/* Left Column: Copilot (Matching Wireframe) */}
+              <PromptPanel
+                isCollapsed={isCopilotCollapsed}
+                onToggleCollapse={() => setIsCopilotCollapsed(!isCopilotCollapsed)}
+                onStreamEvent={(evt) => setStreamEvents((prev) => [...prev, evt])}
+                onStreamStatusChange={setIsStreaming}
+              />
+
+              {/* Right Column: Dedicated Document Workspace */}
+              <div className="document-workspace">
+                {/* 1. Ribbon Toolbar Scoped Strictly to Document Workspace */}
+                <EditorRibbon onOpenSavedSessions={() => setIsSavedSessionsOpen(true)} />
+
+                {/* 2. Workspace Body: Tabs Rail (Structure/Stream) + Document Canvas */}
                 <div
-                  className="three-pane-layout"
+                  className="doc-workspace-body"
                   style={{
-                    gridTemplateColumns: `${isLeftCollapsed ? "44px" : "320px"} 1fr ${isRightCollapsed ? "44px" : "320px"}`,
-                    transition: "grid-template-columns 0.25s ease",
+                    gridTemplateColumns: `${isTabsCollapsed ? "40px" : "260px"} 1fr`,
+                    transition: "grid-template-columns 0.2s ease",
                   }}
                 >
-                  {/* Left Pane: Switchable between Agent Execution Stream and Structure/Config */}
+                  {/* Tabs Rail: Structure / Agent Stream */}
                   <div
                     style={{
                       display: "flex",
                       flexDirection: "column",
                       height: "100%",
                       overflow: "hidden",
-                      borderRight: "1px solid #e2e8f0",
+                      borderRight: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e2e8f0",
+                      background: isDarkMode ? "#090d16" : "#f8fafc",
                     }}
                   >
-                    {!isLeftCollapsed && (
-                      <div
-                        style={{
-                          display: "flex",
-                          backgroundColor: "#0f172a",
-                          borderBottom: "1px solid #1e293b",
-                          padding: "4px 8px",
-                          gap: "4px",
-                        }}
-                      >
-                        <button
+                    {!isTabsCollapsed ? (
+                      <>
+                        <div
                           style={{
-                            flex: 1,
+                            display: "flex",
+                            backgroundColor: isDarkMode ? "#0f172a" : "#e2e8f0",
+                            borderBottom: isDarkMode ? "1px solid #1e293b" : "1px solid #cbd5e1",
                             padding: "4px 8px",
-                            fontSize: "11px",
-                            fontWeight: 700,
-                            borderRadius: "4px",
-                            border: "none",
-                            cursor: "pointer",
-                            backgroundColor: leftPaneMode === "stream" ? "#0284c7" : "transparent",
-                            color: leftPaneMode === "stream" ? "#ffffff" : "#94a3b8",
+                            gap: "4px",
                           }}
-                          onClick={() => setLeftPaneMode("stream")}
                         >
-                          ⚡ Agent Stream
-                        </button>
-                        <button
-                          style={{
-                            flex: 1,
-                            padding: "4px 8px",
-                            fontSize: "11px",
-                            fontWeight: 700,
-                            borderRadius: "4px",
-                            border: "none",
-                            cursor: "pointer",
-                            backgroundColor: leftPaneMode === "config" ? "#0284c7" : "transparent",
-                            color: leftPaneMode === "config" ? "#ffffff" : "#94a3b8",
-                          }}
-                          onClick={() => setLeftPaneMode("config")}
-                        >
-                          📑 Structure
-                        </button>
-                        <button
-                          onClick={() => setIsLeftCollapsed(true)}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            color: "#94a3b8",
-                            cursor: "pointer",
-                            padding: "2px 6px",
-                            fontSize: "12px",
-                          }}
-                          title="Collapse Left Pane"
-                        >
-                          ◀
-                        </button>
-                      </div>
-                    )}
+                          <button
+                            style={{
+                              flex: 1,
+                              padding: "4px 8px",
+                              fontSize: "11px",
+                              fontWeight: 700,
+                              borderRadius: "4px",
+                              border: "none",
+                              cursor: "pointer",
+                              backgroundColor: leftPaneMode === "config" ? (isDarkMode ? "#0284c7" : "#ffffff") : "transparent",
+                              color: leftPaneMode === "config" ? (isDarkMode ? "#ffffff" : "#0284c7") : (isDarkMode ? "#94a3b8" : "#64748b"),
+                              boxShadow: leftPaneMode === "config" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                            }}
+                            onClick={() => setLeftPaneMode("config")}
+                          >
+                            📑 Outline
+                          </button>
+                          <button
+                            style={{
+                              flex: 1,
+                              padding: "4px 8px",
+                              fontSize: "11px",
+                              fontWeight: 700,
+                              borderRadius: "4px",
+                              border: "none",
+                              cursor: "pointer",
+                              backgroundColor: leftPaneMode === "stream" ? (isDarkMode ? "#0284c7" : "#ffffff") : "transparent",
+                              color: leftPaneMode === "stream" ? (isDarkMode ? "#ffffff" : "#0284c7") : (isDarkMode ? "#94a3b8" : "#64748b"),
+                              boxShadow: leftPaneMode === "stream" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                            }}
+                            onClick={() => setLeftPaneMode("stream")}
+                          >
+                            ⚡ Stream
+                          </button>
+                          <button
+                            onClick={() => setIsTabsCollapsed(true)}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              color: isDarkMode ? "#94a3b8" : "#64748b",
+                              cursor: "pointer",
+                              padding: "2px 6px",
+                              fontSize: "12px",
+                            }}
+                            title="Collapse Outline Tabs"
+                          >
+                            ◀
+                          </button>
+                        </div>
 
-                    {isLeftCollapsed ? (
+                        {leftPaneMode === "config" ? (
+                          <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+                            <ConfigPanel isCollapsed={false} onToggleCollapse={() => setIsTabsCollapsed(true)} />
+                          </div>
+                        ) : (
+                          <div style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+                            <AgentExecutionStream
+                              events={streamEvents}
+                              isStreaming={isStreaming}
+                              onClear={() => setStreamEvents([])}
+                            />
+                          </div>
+                        )}
+                      </>
+                    ) : (
                       <div
-                        onClick={() => setIsLeftCollapsed(false)}
+                        onClick={() => setIsTabsCollapsed(false)}
                         style={{
                           display: "flex",
                           flexDirection: "column",
@@ -314,28 +351,19 @@ export default function App() {
                           paddingTop: "12px",
                           cursor: "pointer",
                           height: "100%",
-                          backgroundColor: "#0f172a",
-                          color: "#38bdf8",
+                          color: isDarkMode ? "#38bdf8" : "#0284c7",
                         }}
-                        title="Expand Left Pane"
+                        title="Expand Outline & Structure"
                       >
-                        <span>⚡</span>
-                      </div>
-                    ) : leftPaneMode === "stream" ? (
-                      <div style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
-                        <AgentExecutionStream
-                          events={streamEvents}
-                          isStreaming={isStreaming}
-                          onClear={() => setStreamEvents([])}
-                        />
-                      </div>
-                    ) : (
-                      <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
-                        <ConfigPanel isCollapsed={false} onToggleCollapse={() => setIsLeftCollapsed(true)} />
+                        <span style={{ fontSize: "16px", marginBottom: "8px" }}>📑</span>
+                        <span style={{ writingMode: "vertical-rl", fontSize: "10px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase" }}>
+                          Outline
+                        </span>
                       </div>
                     )}
                   </div>
 
+                  {/* Main Document Canvas */}
                   <div
                     className="canvas-container"
                     onClick={(e) => {
@@ -352,15 +380,11 @@ export default function App() {
                   >
                     <SegmentedDocEditor />
                   </div>
-                  <PromptPanel
-                    isCollapsed={isRightCollapsed}
-                    onToggleCollapse={() => setIsRightCollapsed(!isRightCollapsed)}
-                    onStreamEvent={(evt) => setStreamEvents((prev) => [...prev, evt])}
-                    onStreamStatusChange={setIsStreaming}
-                  />
                 </div>
-              </main>
-              <EditorStatusBar />
+
+                {/* 3. Document Status Bar at bottom of workspace */}
+                <EditorStatusBar />
+              </div>
             </div>
           }
         />

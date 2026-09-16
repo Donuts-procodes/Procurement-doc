@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { answerPendingQuestion, refineSegment, refineSelection } from "../../api/client";
+import { useState, useRef } from "react";
+import { answerPendingQuestion, refineSegment, refineSelection, uploadKnowledgeFiles } from "../../api/client";
 import { useWizardStore } from "../../state/wizardStore";
 import { exportToPdf, exportToWord, exportToTxt } from "../../utils/exportUtils";
 import type { StreamEvent } from "../../types";
@@ -16,6 +16,9 @@ export function PromptPanel({ isCollapsed, onToggleCollapse, onStreamEvent, onSt
     sessionId,
     documentId,
     model,
+    kbId,
+    kbFiles,
+    setKnowledgeBase,
     selectedSegmentId,
     segments,
     promptLog,
@@ -38,6 +41,9 @@ export function PromptPanel({ isCollapsed, onToggleCollapse, onStreamEvent, onSt
     sessionId: s.sessionId,
     documentId: s.documentId,
     model: s.model,
+    kbId: s.kbId,
+    kbFiles: s.kbFiles,
+    setKnowledgeBase: s.setKnowledgeBase,
     selectedSegmentId: s.selectedSegmentId,
     segments: s.segments,
     promptLog: s.promptLog,
@@ -61,6 +67,27 @@ export function PromptPanel({ isCollapsed, onToggleCollapse, onStreamEvent, onSt
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [targetScope, setTargetScope] = useState<"selection" | "segment" | "global">("global");
+  const [uploadingFiles, setUploadingFiles] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFileUpload(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setUploadingFiles(true);
+    try {
+      const res = await uploadKnowledgeFiles(Array.from(files), kbId || undefined);
+      setKnowledgeBase(res.kb_id, res.files);
+      addChatMessage({
+        id: `upload_${Date.now()}`,
+        sender: "assistant",
+        text: `📎 Ingested ${files.length} reference document(s) into Copilot context (${res.total_chunks} vector chunks indexed).`,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      });
+    } catch (err: any) {
+      console.error("Upload error in PromptPanel:", err);
+    } finally {
+      setUploadingFiles(false);
+    }
+  }
 
   const getChain = () => {
     if (!activeEditor || activeEditor.isDestroyed) return null;
@@ -317,7 +344,7 @@ export function PromptPanel({ isCollapsed, onToggleCollapse, onStreamEvent, onSt
           cursor: "pointer",
         }}
         onClick={onToggleCollapse}
-        title="Expand AI Co-Pilot Panel"
+        title="Expand Copilot"
       >
         <button
           onClick={(e) => {
@@ -332,14 +359,15 @@ export function PromptPanel({ isCollapsed, onToggleCollapse, onStreamEvent, onSt
             cursor: "pointer",
             marginBottom: "12px",
           }}
+          title="Expand Copilot"
         >
-          ◀
+          ▶
         </button>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: "12px", color: isDarkMode ? "#60a5fa" : "#1a73e8" }}>
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
         </svg>
         <span style={{ writingMode: "vertical-rl", textTransform: "uppercase", fontSize: "11px", fontWeight: 700, letterSpacing: "1px", color: isDarkMode ? "#94a3b8" : "#64748b" }}>
-          Help Bot
+          Copilot
         </span>
       </aside>
     );
@@ -364,7 +392,7 @@ export function PromptPanel({ isCollapsed, onToggleCollapse, onStreamEvent, onSt
       <div className="prompt-panel__header" style={{ padding: "14px 16px", borderBottom: isDarkMode ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0, 0, 0, 0.05)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", color: isDarkMode ? "#f8fafc" : "#1f2937" }}>
-            ✨ AI Co-Pilot
+            ✨ Copilot
           </h3>
           <div className="model-indicator" style={{ fontSize: "11px", color: isDarkMode ? "#94a3b8" : "#64748b", marginTop: "2px" }}>
             <span>Active Model:</span> <strong>{model || "gpt-4o"}</strong>
@@ -382,9 +410,9 @@ export function PromptPanel({ isCollapsed, onToggleCollapse, onStreamEvent, onSt
               padding: "4px 8px",
               borderRadius: "4px",
             }}
-            title="Collapse Panel"
+            title="Collapse Copilot"
           >
-            ▶
+            ◀
           </button>
         )}
       </div>
@@ -545,6 +573,68 @@ export function PromptPanel({ isCollapsed, onToggleCollapse, onStreamEvent, onSt
             </button>
           ))}
         </div>
+
+        {/* Docs / PDF attachment row matching user wireframe */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px", flexWrap: "wrap", gap: "6px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingFiles}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+                padding: "4px 10px",
+                fontSize: "11px",
+                fontWeight: 600,
+                borderRadius: "6px",
+                border: isDarkMode ? "1px solid #3b82f6" : "1px solid #93c5fd",
+                background: isDarkMode ? "rgba(59, 130, 246, 0.2)" : "#eff6ff",
+                color: isDarkMode ? "#93c5fd" : "#1d4ed8",
+                cursor: uploadingFiles ? "not-allowed" : "pointer",
+                transition: "all 0.15s ease",
+              }}
+              title="Upload reference PDF, DOCX, or text files for Copilot context"
+            >
+              <span>📎</span>
+              <span>{uploadingFiles ? "Uploading..." : "+ Add Docs/PDF"}</span>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".pdf,.docx,.txt,.md"
+              style={{ display: "none" }}
+              onChange={(e) => handleFileUpload(e.target.files)}
+            />
+
+            {kbFiles && kbFiles.length > 0 && (
+              <span style={{ fontSize: "11px", color: isDarkMode ? "#94a3b8" : "#64748b" }}>
+                {kbFiles.length} doc{kbFiles.length > 1 ? "s" : ""} active
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Display active doc chips if any */}
+        {kbFiles && kbFiles.length > 0 && (
+          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "8px", maxHeight: "50px", overflowY: "auto" }}>
+            {kbFiles.map((file, i) => (
+              <span
+                key={file.filename || i}
+                className="copilot-file-chip"
+                title={`${file.filename} (${file.chunk_count} chunks)`}
+              >
+                <span>📄</span>
+                <span style={{ maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {file.filename}
+                </span>
+              </span>
+            ))}
+          </div>
+        )}
+
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -554,7 +644,7 @@ export function PromptPanel({ isCollapsed, onToggleCollapse, onStreamEvent, onSt
               handleSend();
             }
           }}
-          placeholder="Ask AI Co-Pilot to edit, expand, or reformat..."
+          placeholder="Ask Copilot to edit, expand, or reformat..."
           rows={2}
           style={{
             width: "100%",
@@ -589,7 +679,7 @@ export function PromptPanel({ isCollapsed, onToggleCollapse, onStreamEvent, onSt
             boxShadow: loading || !input.trim() ? "none" : "0 4px 12px rgba(37, 99, 235, 0.25)",
           }}
         >
-          {loading ? "Processing request..." : "Send to Co-Pilot"}
+          {loading ? "Processing request..." : "Send to Copilot"}
         </button>
       </div>
     </aside>

@@ -216,7 +216,7 @@ export function StepKnowledgeBase() {
       <div className="wizard-step__actions">
         <button
           className="secondary-button"
-          onClick={() => setStep("template-config")}
+          onClick={() => setStep("templates")}
           style={{
             color: isDarkMode ? "#f8fafc" : "#1e293b",
             background: isDarkMode ? "rgba(255,255,255,0.08)" : "#ffffff",

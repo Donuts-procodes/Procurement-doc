@@ -145,7 +145,7 @@ const initialApiKeyConfig = getSavedApiKey();
 const initialSavedSessions = getSavedSessionsFromStorage();
 
 export const useWizardStore = create<WizardState>((set, get) => ({
-  step: initialApiKeyConfig ? (initialSavedSessions.length > 0 ? "editor" : "template-config") : "api-key",
+  step: initialApiKeyConfig ? (initialSavedSessions.length > 0 ? "editor" : "templates") : "api-key",
   provider: initialApiKeyConfig?.provider || null,
   model: initialApiKeyConfig?.model || null,
   sessionId: initialSavedSessions.length > 0 ? initialSavedSessions[0].sessionId : null,
@@ -215,13 +215,13 @@ export const useWizardStore = create<WizardState>((set, get) => ({
     } catch (e) {
       console.error("Failed to save AI config to localStorage:", e);
     }
-    set({ savedApiKeyConfig: config, provider, model, step: "knowledge-base", error: null });
+    set({ savedApiKeyConfig: config, provider, model, step: "templates", error: null });
   },
 
   setGuidedParams: (params) => set((s) => ({ guidedParams: { ...s.guidedParams, ...params } })),
   setStep: (step) => set({ step }),
   setSession: (provider, model, sessionId) =>
-    set({ provider, model, sessionId, step: "knowledge-base", error: null }),
+    set({ provider, model, sessionId, step: "templates", error: null }),
   setKnowledgeBase: (kbId, files) =>
     set((s) => {
       if (!kbId || files.length === 0) {
@@ -233,7 +233,6 @@ export const useWizardStore = create<WizardState>((set, get) => ({
       return {
         kbId,
         kbFiles: merged,
-        step: s.step === "knowledge-base" ? "template-config" : s.step,
         error: null,
       };
     }),
@@ -597,7 +596,7 @@ export const useWizardStore = create<WizardState>((set, get) => ({
       error: null,
       historyStack: [],
       futureStack: [],
-      step: "knowledge-base",
+      step: "templates",
     });
   },
 }));

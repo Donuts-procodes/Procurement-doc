@@ -165,7 +165,7 @@ export function StepGenerating() {
           })
           .catch((fallbackErr) => {
             setError(fallbackErr instanceof Error ? fallbackErr.message : "Generation failed");
-            setStep("template-config");
+            setStep("prompt-intake");
           });
       },
       () => {

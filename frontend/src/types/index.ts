@@ -416,7 +416,7 @@ export interface PreflightBlueprintResponse {
 
 export type PageLayoutSize = "A4" | "LETTER" | "A3" | "LEGAL";
 
-export type WizardStep = "api-key" | "knowledge-base" | "template-config" | "generating" | "editor";
+export type WizardStep = "api-key" | "templates" | "prompt-intake" | "generating" | "editor";
 
 export interface SavedSession {
   _id: string;

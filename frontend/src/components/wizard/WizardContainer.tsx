@@ -1,9 +1,10 @@
 import { useWizardStore } from "../../state/wizardStore";
 import { StepApiKey } from "./StepApiKey";
 import { StepGenerating } from "./StepGenerating";
-import { StepKnowledgeBase } from "./StepKnowledgeBase";
-import { StepTemplateConfig } from "./StepTemplateConfig";
+import { StepTemplateGrid } from "./StepTemplateGrid";
+import { StepPromptIntake } from "./StepPromptIntake";
 import { IconDock } from "../layout/IconDock";
+
 export function WizardContainer() {
   const step = useWizardStore((s) => s.step);
   const isDarkMode = useWizardStore((s) => s.isDarkMode);
@@ -38,8 +39,8 @@ export function WizardContainer() {
         }}
       >
         {step === "api-key" && <StepApiKey />}
-        {step === "knowledge-base" && <StepKnowledgeBase />}
-        {step === "template-config" && <StepTemplateConfig />}
+        {step === "templates" && <StepTemplateGrid />}
+        {step === "prompt-intake" && <StepPromptIntake />}
         {step === "generating" && <StepGenerating />}
       </div>
     </div>
