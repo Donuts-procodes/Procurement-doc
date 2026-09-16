@@ -1,5 +1,9 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import fs from "fs";
+
+const isDocker = fs.existsSync("/.dockerenv");
+const backendTarget = process.env.BACKEND_URL || (isDocker ? "http://backend:8000" : "http://localhost:8000");
 
 export default defineConfig({
   plugins: [react()],
@@ -8,6 +12,12 @@ export default defineConfig({
     port: 5174,
     strictPort: true,
     allowedHosts: true,
+    proxy: {
+      "/api": {
+        target: backendTarget,
+        changeOrigin: true,
+      },
+    },
     hmr: {
       clientPort: 5174,
     },
