@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useWizardStore } from "../../state/wizardStore";
 import {
   PREBUILT_TEMPLATES_LIST,
   type ProcurementDocType,
   type TemplateDefinition,
 } from "../../types";
+import { TemplateHoverPreview } from "./TemplateHoverPreview";
 
 const CATEGORY_TABS: { id: string; label: string }[] = [
   { id: "ALL", label: "All" },
@@ -25,6 +26,15 @@ export function StepTemplateGrid() {
 
   const [activeTab, setActiveTab] = useState<string>("ALL");
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(storeTemplateId || "rfp_enterprise");
+  const [hoveredTemplate, setHoveredTemplate] = useState<TemplateDefinition | null>(null);
+  const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    };
+  }, []);
 
   const filteredTemplates =
     activeTab === "ALL"
@@ -110,6 +120,22 @@ export function StepTemplateGrid() {
             <div
               key={tmpl.id}
               onClick={() => handleSelect(tmpl)}
+              onMouseEnter={(e) => {
+                const clientX = e.clientX;
+                const clientY = e.clientY;
+                if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                hoverTimeoutRef.current = setTimeout(() => {
+                  setMousePos({ x: clientX, y: clientY });
+                  setHoveredTemplate(tmpl);
+                }, 180);
+              }}
+              onMouseMove={(e) => {
+                setMousePos({ x: e.clientX, y: e.clientY });
+              }}
+              onMouseLeave={() => {
+                if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                setHoveredTemplate(null);
+              }}
               style={{
                 padding: "18px",
                 borderRadius: "12px",
@@ -225,6 +251,15 @@ export function StepTemplateGrid() {
           Next →
         </button>
       </div>
+
+      {/* Floating Dynamic Hover Document Preview Portal */}
+      {hoveredTemplate && (
+        <TemplateHoverPreview
+          template={hoveredTemplate}
+          isDarkMode={isDarkMode}
+          position={mousePos}
+        />
+      )}
     </div>
   );
 }

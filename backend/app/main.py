@@ -23,6 +23,7 @@ from app.api.v1 import (
     routes_session,
     routes_sessions,
     routes_subagents,
+    routes_templates,
 )
 
 
@@ -94,6 +95,7 @@ app.include_router(routes_knowledge.router, prefix="/api/v1")
 app.include_router(routes_generate.router, prefix="/api/v1")
 app.include_router(routes_sessions.router, prefix="/api/v1")
 app.include_router(routes_subagents.router, prefix="/api/v1/subagents", tags=["Subagents"])
+app.include_router(routes_templates.router, prefix="/api/v1")
 
 
 @app.get("/api/health")

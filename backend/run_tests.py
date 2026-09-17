@@ -438,8 +438,53 @@ def run_all_micro_tests():
 
     print("[PASS] [17/17] Image Understanding & Layout Budgeting: Spatial extraction and diagram distribution verified!")
 
+    # =====================================================================
+    # 18. Dynamic S3 & Local Template Discovery & Hover Dummy Preview AST
+    # =====================================================================
+    from app.services.s3_template_service import (
+        list_all_dynamic_templates,
+        get_template_preview,
+        register_custom_template,
+    )
+
+    templates = list_all_dynamic_templates()
+    assert len(templates) >= 10, f"Expected >= 10 templates, got {len(templates)}"
+    
+    # Verify preview AST generation
+    rfp_preview = get_template_preview("rfp_enterprise")
+    assert rfp_preview is not None
+    assert "preview_ast" in rfp_preview
+    assert rfp_preview["preview_ast"]["type"] == "doc"
+    assert len(rfp_preview["preview_ast"]["content"]) > 0
+
+    # Verify custom template registration with space for document attachment
+    test_custom = register_custom_template(
+        manifest_data={
+            "id": "test_s3_custom_audit",
+            "category": "RFP",
+            "title": "Custom Cloud Engineering RFP",
+            "description": "Dynamic custom procurement document template.",
+            "tone": "Technical & Rigorous",
+            "sections": [
+                {"title": "Executive Summary", "section_type": "prose", "guidance": "Executive overview"},
+                {"title": "Cost Model", "section_type": "line_items", "guidance": "Itemized costs"},
+            ],
+        },
+        doc_file_bytes=b"# Custom Markdown Document Template\n\nSample text",
+        filename="custom_sample.md",
+    )
+    assert test_custom.id == "test_s3_custom_audit"
+    assert test_custom.is_custom is True
+    assert len(test_custom.sections) == 2
+
+    # Verify discovery picks up newly registered custom template
+    refreshed_preview = get_template_preview("test_s3_custom_audit")
+    assert refreshed_preview is not None
+    assert refreshed_preview["is_custom"] is True
+    print("[PASS] [18/18] Dynamic S3/Local Template Engine: Manifest discovery & preview AST verified!")
+
     print("==================================================")
-    print("[SUCCESS] ALL 17 MICRO-FUNCTION SUITES PASSED CLEANLY (100% SUCCESS)")
+    print("[SUCCESS] ALL 18 MICRO-FUNCTION SUITES PASSED CLEANLY (100% SUCCESS)")
     print("==================================================")
 
 

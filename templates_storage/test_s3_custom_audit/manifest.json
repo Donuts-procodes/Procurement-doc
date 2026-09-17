@@ -1,0 +1,21 @@
+{
+  "id": "test_s3_custom_audit",
+  "category": "RFP",
+  "title": "Custom Cloud Engineering RFP",
+  "description": "Dynamic custom procurement document template.",
+  "tone": "Technical & Rigorous",
+  "sections": [
+    {
+      "title": "Executive Summary",
+      "section_type": "prose",
+      "guidance": "Executive overview"
+    },
+    {
+      "title": "Cost Model",
+      "section_type": "line_items",
+      "guidance": "Itemized costs"
+    }
+  ],
+  "is_custom": true,
+  "source": "local_storage"
+}
