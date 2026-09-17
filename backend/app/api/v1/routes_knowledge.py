@@ -10,8 +10,6 @@ from app.db.document_store import DocumentStatus, document_store
 from app.schemas.schemas import ImageSpatialAnchor, KnowledgeFileSummary, KnowledgeUploadResponse, ProcurementDocType
 from app.services.document_parser import (
     chunk_text,
-    extract_images_from_docx,
-    extract_images_from_pdf,
     extract_images_with_anchors_docx,
     extract_images_with_anchors_pdf,
     extract_structured_tables_docx,

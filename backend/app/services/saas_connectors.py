@@ -14,8 +14,6 @@ logger = logging.getLogger("gdocs.saas_connectors")
 
 # security-auditor: All tokens from environment, never hardcoded
 GOOGLE_SERVICE_ACCOUNT_JSON = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
-JIRA_API_TOKEN = os.environ.get("JIRA_API_TOKEN")
-JIRA_BASE_URL = os.environ.get("JIRA_BASE_URL")
 CRM_API_KEY = os.environ.get("CRM_API_KEY")
 CRM_BASE_URL = os.environ.get("CRM_BASE_URL")
 
@@ -23,7 +21,7 @@ CRM_BASE_URL = os.environ.get("CRM_BASE_URL")
 class SaaSRecord(BaseModel):
     """Normalized record from any 3rd-party SaaS source."""
     record_id: str = Field(default_factory=lambda: uuid.uuid4().hex[:12])
-    source_type: Literal["google_drive", "jira", "crm", "custom"] = "custom"
+    source_type: Literal["google_drive", "crm", "custom"] = "custom"
     source_label: str = ""
     title: str = ""
     content: str = ""
@@ -93,52 +91,6 @@ async def fetch_google_drive_document(file_id: str, kb_id: str | None = None) ->
         return result
 
 
-async def fetch_jira_epic(epic_key: str, kb_id: str | None = None) -> SaaSIngestionResult:
-    """Fetch Jira epic and child issues, ingest into vector store."""
-    result = SaaSIngestionResult(source_type="jira")
-
-    if not JIRA_API_TOKEN or not JIRA_BASE_URL:
-        result.errors.append("JIRA_API_TOKEN or JIRA_BASE_URL env var not configured")
-        logger.warning("SaaS Connector: Jira not configured")
-        return result
-
-    try:
-        import httpx
-        async with httpx.AsyncClient(timeout=15) as client:
-            headers = {
-                "Authorization": f"Bearer {JIRA_API_TOKEN}",
-                "Accept": "application/json",
-            }
-            resp = await client.get(
-                f"{JIRA_BASE_URL}/rest/api/3/search",
-                params={"jql": f'"Epic Link" = {epic_key} OR key = {epic_key}', "maxResults": 20},
-                headers=headers,
-            )
-            resp.raise_for_status()
-            data = resp.json()
-
-            records: list[SaaSRecord] = []
-            for issue in data.get("issues", []):
-                fields = issue.get("fields", {})
-                raw_content = f"{fields.get('summary', '')}. {fields.get('description', '') or ''}"
-                sanitized = _sanitize_content(raw_content)
-                records.append(SaaSRecord(
-                    source_type="jira",
-                    source_label=f"Jira {issue['key']}",
-                    title=fields.get("summary", issue["key"]),
-                    content=sanitized,
-                    metadata={"issue_key": issue["key"], "status": fields.get("status", {}).get("name", "")},
-                ))
-
-            result.records_fetched = len(records)
-            if kb_id and records:
-                result = await _ingest_records_to_kb(records, kb_id, result)
-
-    except Exception as e:
-        result.errors.append(str(e)[:200])
-        logger.warning(f"SaaS Connector Jira error: {e}")
-
-    return result
 
 
 async def fetch_crm_opportunity(opportunity_id: str, kb_id: str | None = None) -> SaaSIngestionResult:

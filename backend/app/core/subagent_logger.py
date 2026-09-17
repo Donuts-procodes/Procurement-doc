@@ -228,9 +228,14 @@ class SubagentLoggerHub:
 
         self._history.append(event)
 
-        # Print formatted live log to stdout immediately (unbuffered)
+        # Print formatted live log to stdout immediately (unbuffered, safe for Windows cp1252 console)
         formatted_line = self._format_terminal(event, meta)
-        sys.stdout.write(formatted_line + "\n")
+        try:
+            sys.stdout.write(formatted_line + "\n")
+        except UnicodeEncodeError:
+            encoding = sys.stdout.encoding or "utf-8"
+            safe_line = (formatted_line + "\n").encode(encoding, errors="replace").decode(encoding)
+            sys.stdout.write(safe_line)
         sys.stdout.flush()
 
         # Update stats

@@ -77,7 +77,7 @@ services:
       - procurement_net
 
   chromadb:
-    image: chromadb/chroma:0.5.18
+    image: chromadb/chroma:latest
     container_name: procurement_chromadb
     restart: unless-stopped
     ports:

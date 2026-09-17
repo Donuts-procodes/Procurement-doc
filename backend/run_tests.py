@@ -266,8 +266,8 @@ def run_all_micro_tests():
     assert len(chunks) >= 3, f"Expected >= 3 chunks, got {len(chunks)}"
     assert all(len(c) <= 800 for c in chunks)
 
-    record = SaaSRecord(source_type="jira", title="Test Epic", content="Sprint requirements")
-    assert record.attribution_tag.startswith("[^jira_")
+    record = SaaSRecord(source_type="google_drive", title="Test Doc", content="Procurement requirements")
+    assert record.attribution_tag.startswith("[^google_drive_")
     print("[PASS] [14/15] SaaS Connector: PII sanitization & chunking verified!")
 
     # =====================================================================

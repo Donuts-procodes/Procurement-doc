@@ -71,11 +71,6 @@ def extract_images_with_anchors_pdf(content: bytes, max_pages: int = 10) -> list
     return anchors
 
 
-def extract_images_from_pdf(content: bytes, max_pages: int = 10) -> list[str]:
-    """Extract individual distinct embedded images and diagrams from PDF pages into base64 data URLs."""
-    anchors = extract_images_with_anchors_pdf(content, max_pages=max_pages)
-    return [a.url_or_base64 for a in anchors]
-
 
 def extract_images_with_anchors_docx(content: bytes) -> list[ImageSpatialAnchor]:
     """Extract embedded images and diagrams from DOCX with spatial anchors (preceding heading, aspect ratio, dimensions)."""
@@ -196,11 +191,6 @@ def extract_images_with_anchors_docx(content: bytes) -> list[ImageSpatialAnchor]
         pass
     return anchors
 
-
-def extract_images_from_docx(content: bytes) -> list[str]:
-    """Extract embedded images and diagrams from DOCX documents into base64 data URLs."""
-    anchors = extract_images_with_anchors_docx(content)
-    return [a.url_or_base64 for a in anchors]
 
 
 

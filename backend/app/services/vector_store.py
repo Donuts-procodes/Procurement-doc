@@ -35,12 +35,22 @@ def _create_chroma_client() -> chromadb.ClientAPI:
 _client = _create_chroma_client()
 
 
+def _get_collection(name: str):
+    global _client
+    try:
+        return _client.get_or_create_collection(name=name)
+    except Exception as exc:
+        logger.warning(f"⚠️ Chroma client error ({exc}). Re-initializing with local PersistentClient...")
+        _client = chromadb.PersistentClient(path=CHROMA_LOCAL_PATH)
+        return _client.get_or_create_collection(name=name)
+
+
 class KnowledgeBase:
     def __init__(self, kb_id: str | None = None, collection_type: Literal["general", "policy", "vendor"] = "general") -> None:
         self.kb_id = kb_id or uuid.uuid4().hex
         self.collection_type = collection_type
         self.collection_name = f"kb_{self.collection_type}_{self.kb_id}"
-        self.collection = _client.get_or_create_collection(name=self.collection_name)
+        self.collection = _get_collection(name=self.collection_name)
 
     def add_chunks(self, chunks: list[str], source: str, metadata_extra: dict | None = None) -> int:
         if not chunks:
