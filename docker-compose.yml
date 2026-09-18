@@ -10,19 +10,22 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379/0
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/rfq_db
-      - CHROMA_HOST=chromadb
-      - CHROMA_PORT=8000
+      - MILVUS_HOST=milvus
+      - MILVUS_PORT=19530
+      - MILVUS_URI=http://milvus:19530
+      - LOCAL_TEMPLATES_DIR=/app/templates_storage
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
     volumes:
       - ./backend:/app
+      - ./templates_storage:/app/templates_storage
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_started
-      chromadb:
+      milvus:
         condition: service_started
     networks:
       - procurement_net
@@ -54,7 +57,7 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=rfq_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -70,31 +73,33 @@ services:
     container_name: procurement_redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_data:/data
     networks:
       - procurement_net
 
-  chromadb:
-    image: chromadb/chroma:latest
-    container_name: procurement_chromadb
+  milvus:
+    image: milvusdb/milvus:v2.4.0
+    container_name: procurement_milvus
+    command: ["milvus", "run", "standalone"]
     restart: unless-stopped
-    ports:
-      - "8002:8000"
-    volumes:
-      - chroma_data:/chroma/chroma
     environment:
-      - IS_PERSISTENT=TRUE
-      - PERSIST_DIRECTORY=/chroma/chroma
-      - ANONYMIZED_TELEMETRY=FALSE
+      - ETCD_USE_EMBED=true
+      - ETCD_DATA_DIR=/var/lib/milvus/etcd
+      - COMMON_STORAGETYPE=local
+    ports:
+      - "19531:19530"
+      - "9095:9091"
+    volumes:
+      - milvus_data:/var/lib/milvus
     networks:
       - procurement_net
 
 volumes:
   postgres_data:
   redis_data:
-  chroma_data:
+  milvus_data:
 
 networks:
   procurement_net:

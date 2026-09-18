@@ -29,6 +29,41 @@ export interface SectionGuidance {
   title: string;
   section_type: "prose" | "line_items" | "payment_schedule" | "clause";
   guidance: string;
+  estimated_pages?: number;
+}
+
+export type CardAspectRatio = "portrait_a4" | "tall_poster" | "landscape_card" | "square";
+
+export interface VisualThemeModel {
+  primary_color: string;
+  accent_color: string;
+  gradient_css: string;
+  badge_text: string;
+  badge_color: string;
+  dark_mode_compatible?: boolean;
+}
+
+export interface DynamicVisualManifest {
+  id: string;
+  title: string;
+  subtitle: string;
+  category: string;
+  aspect_ratio: CardAspectRatio;
+  theme: VisualThemeModel;
+  file_name?: string;
+  file_path?: string;
+  source: string;
+  is_custom: boolean;
+  is_blank_doc?: boolean;
+  sections: SectionGuidance[];
+  tags: string[];
+  preview_ast?: Record<string, unknown> | null;
+}
+
+export interface DynamicGalleryResponse {
+  categories: Array<{ id: string; label: string }>;
+  total_count: number;
+  templates: DynamicVisualManifest[];
 }
 
 export interface TemplateDefinition {
@@ -389,6 +424,9 @@ export interface GuidedParameters {
   vendor_name?: string;
   budget_estimate?: string;
   delivery_timeline?: string;
+  target_dates?: string;
+  room_or_facility?: string;
+  availability_verification?: string;
   compliance_frameworks?: string[];
   primary_tech?: string;
   sla_target?: string;

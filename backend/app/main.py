@@ -20,6 +20,7 @@ logger.info("Initializing FastAPI Backend with verbose logging...")
 from app.api.v1 import (
     routes_generate,
     routes_knowledge,
+    routes_orchestrator,
     routes_session,
     routes_sessions,
     routes_subagents,
@@ -90,6 +91,8 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"detail": "An internal server error occurred.", "message": str(exc)},
     )
 
+app.include_router(routes_orchestrator.router, prefix="", tags=["NestJS Orchestrator Root"])
+app.include_router(routes_orchestrator.router, prefix="/api/v1", tags=["NestJS Orchestrator v1"])
 app.include_router(routes_session.router, prefix="/api/v1")
 app.include_router(routes_knowledge.router, prefix="/api/v1")
 app.include_router(routes_generate.router, prefix="/api/v1")
@@ -98,6 +101,7 @@ app.include_router(routes_subagents.router, prefix="/api/v1/subagents", tags=["S
 app.include_router(routes_templates.router, prefix="/api/v1")
 
 
+@app.get("/health")
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}

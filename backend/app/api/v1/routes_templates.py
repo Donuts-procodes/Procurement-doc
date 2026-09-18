@@ -1,83 +1,109 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
+from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from pydantic import BaseModel
-
-from app.services.s3_template_service import (
-    DynamicTemplateManifest,
-    get_template_preview,
-    list_all_dynamic_templates,
-    register_custom_template,
+from app.schemas.dynamic_template_schemas import (
+    DynamicGalleryResponse,
+    DynamicVisualManifest,
+    TemplateCategoryEnum,
+)
+from app.services.dynamic_template_scanner import (
+    DynamicTemplateScanner,
+    LOCAL_TEMPLATES_DIR,
 )
 
 logger = logging.getLogger("gdocs.routes_templates")
-
 router = APIRouter(prefix="/templates", tags=["templates"])
 
 
-class TemplatePreviewResponse(BaseModel):
-    template_id: str
-    title: str
-    category: str
-    tone: str
-    tone_description: str
-    sections: list[dict[str, Any]]
-    preview_image_url: str | None = None
-    preview_ast: dict[str, Any] | None = None
-    is_custom: bool = False
-    source: str = "builtin"
-
-
-@router.get("", response_model=list[DynamicTemplateManifest])
-async def list_templates() -> list[DynamicTemplateManifest]:
-    """Returns all available document templates discovered from S3, local storage, and built-in presets."""
-    logger.info("GET /api/v1/templates: Listing dynamic templates...")
-    return list_all_dynamic_templates()
-
-
-@router.get("/{template_id}/preview", response_model=TemplatePreviewResponse)
-async def fetch_template_preview(template_id: str) -> TemplatePreviewResponse:
-    """Returns dynamic preview information and dummy AST nodes for the hover window."""
-    logger.info(f"GET /api/v1/templates/{template_id}/preview: Fetching preview...")
-    preview = get_template_preview(template_id)
-    if not preview:
-        raise HTTPException(status_code=404, detail=f"Template '{template_id}' not found.")
-    return TemplatePreviewResponse(**preview)
-
-
-@router.post("/upload", response_model=DynamicTemplateManifest)
-async def upload_custom_template(
-    title: str = Form(...),
-    category: str = Form("RFP"),
-    description: str = Form(""),
-    tone: str = Form("Formal & Evaluative"),
-    file: UploadFile | None = File(None),
-) -> DynamicTemplateManifest:
+@router.get("/gallery", response_model=DynamicGalleryResponse)
+async def get_dynamic_gallery(
+    category: TemplateCategoryEnum = Query(default=TemplateCategoryEnum.ALL, description="Active gallery tab filter"),
+    search: str | None = Query(default=None, description="Optional search filter"),
+) -> DynamicGalleryResponse:
     """
-    Upload a custom document template (.docx / .md) into S3 / storage,
-    reserving space for enterprise document assets.
+    Returns dynamically parsed visual templates from storage files (.docx, .md) with zero hardcoding.
     """
-    logger.info(f"POST /api/v1/templates/upload: Uploading custom template '{title}'...")
-    file_bytes = None
-    filename = None
-    if file:
-        file_bytes = await file.read()
-        filename = file.filename
+    logger.info(f"GET /api/v1/templates/gallery - Category: '{category.value}', Search: '{search}'")
 
-    manifest_data = {
-        "title": title,
-        "category": category,
-        "description": description,
-        "tone": tone,
-        "sections": [
-            {"title": "Executive Summary", "section_type": "prose", "guidance": "High-level background."},
-            {"title": "Scope of Work", "section_type": "prose", "guidance": "Deliverables & requirements."},
-            {"title": "Pricing & Costs", "section_type": "line_items", "guidance": "Itemized cost breakdown."},
-            {"title": "Terms & Conditions", "section_type": "clause", "guidance": "Standard clauses."},
-        ],
-    }
+    category_tabs = [
+        {"id": "my_docs", "label": "My Docs"},
+        {"id": "all", "label": "All Templates"},
+        {"id": "education", "label": "Education"},
+        {"id": "business", "label": "Business"},
+        {"id": "reports_analysis", "label": "Reports & Analysis"},
+        {"id": "marketing", "label": "Marketing"},
+        {"id": "career_portfolio", "label": "Career & Portfolio"},
+        {"id": "legal_forms", "label": "Legal & Forms"},
+        {"id": "custom", "label": "Custom"},
+    ]
 
-    return register_custom_template(manifest_data, file_bytes, filename)
+    templates = DynamicTemplateScanner.get_filtered_gallery(category=category, search_query=search)
+
+    return DynamicGalleryResponse(
+        categories=category_tabs,
+        total_count=len(templates),
+        templates=templates,
+    )
+
+
+@router.get("/{template_id}/preview")
+async def get_template_preview(template_id: str) -> dict[str, Any]:
+    """Returns dynamic preview AST and section breakdown for the hover modal."""
+    templates = DynamicTemplateScanner.scan_storage_directory()
+    for t in templates:
+        if t.id == template_id:
+            return {
+                "template_id": t.id,
+                "title": t.title,
+                "subtitle": t.subtitle,
+                "category": t.category.value,
+                "theme": t.theme.model_dump(),
+                "sections": [s.model_dump() for s in t.sections],
+                "preview_ast": t.preview_ast,
+                "is_custom": t.is_custom,
+                "source": t.source,
+            }
+    raise HTTPException(status_code=404, detail=f"Template '{template_id}' not found.")
+
+
+@router.post("/upload-doc", response_model=DynamicVisualManifest)
+async def upload_document_as_template(
+    file: UploadFile = File(..., description="Raw .docx or .md template file"),
+) -> DynamicVisualManifest:
+    """
+    Saves a newly dropped or uploaded doc file directly into templates_storage and immediately
+    returns its auto-parsed visual manifest for live rendering in the frontend gallery.
+    """
+    filename = file.filename or "uploaded_template.docx"
+    ext = os.path.splitext(filename)[1].lower()
+    if ext not in [".docx", ".md", ".txt"]:
+        raise HTTPException(status_code=400, detail="Only .docx, .md, and .txt files are supported.")
+
+    os.makedirs(LOCAL_TEMPLATES_DIR, exist_ok=True)
+    target_path = os.path.join(LOCAL_TEMPLATES_DIR, filename)
+
+    content = await file.read()
+    with open(target_path, "wb") as f:
+        f.write(content)
+
+    logger.info(f"Uploaded and saved new dynamic template file: {target_path}")
+
+    # Trigger hot-scan and return the new manifest
+    all_manifests = DynamicTemplateScanner.scan_storage_directory()
+    for m in all_manifests:
+        if m.file_path == target_path or m.file_name == filename:
+            return m
+
+    # Fallback to the latest parsed manifest
+    return all_manifests[-1]
+
+
+@router.get("")
+async def list_legacy_templates() -> list[dict[str, Any]]:
+    """Legacy compatibility endpoint returning dynamic manifests as dicts."""
+    manifests = DynamicTemplateScanner.scan_storage_directory()
+    return [m.model_dump() for m in manifests]

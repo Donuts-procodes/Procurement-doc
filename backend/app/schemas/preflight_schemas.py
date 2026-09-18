@@ -20,6 +20,12 @@ class PreflightGuidedParams(BaseModel):
     vendor_name: str | None = Field(default=None)
     budget_estimate: str | None = Field(default=None)
     delivery_timeline: str | None = Field(default=None)
+    target_dates: str | None = Field(default=None, description="Requested booking/event/delivery dates")
+    room_or_facility: str | None = Field(default=None, description="Requested room, venue, or facility space")
+    availability_verification: str = Field(
+        default="Manual Staff Verification",
+        description="Bypasses automated date/room collision algorithms in favor of manual staff auditing",
+    )
     primary_tech: str | None = Field(default=None)
     compliance_frameworks: list[str] = Field(default_factory=list)
     sla_target: str = Field(default="99.9% (Standard)")

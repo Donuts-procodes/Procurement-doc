@@ -342,12 +342,30 @@ def compute_preflight_blueprint(req: PreflightBlueprintRequest) -> PreflightBlue
     elif "99.95" in corpus_lower or "high availability" in corpus_lower:
         sla_target = "99.95% (High)"
 
-    # Guided parameters DTO
+    # Dates & Room / Facility extraction (Simplified intake - manual staff verification)
+    dates_match = re.search(
+        r"(?:(?:from|between|dates?|check-in|arrival|during)\s*[:\-]?\s*(\w+\s+\d{1,2}(?:st|nd|rd|th)?(?:\s*-\s*\w+\s+\d{1,2}(?:st|nd|rd|th)?)?(?:,?\s*\d{4})?|\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}/\d{1,2}/\d{2,4}\b))",
+        combined_corpus,
+        re.IGNORECASE,
+    )
+    target_dates = dates_match.group(1).strip() if dates_match else delivery_timeline
+
+    room_match = re.search(
+        r"(?:room|hall|suite|auditorium|conference room|venue|facility|space)\s*[:\-]?\s*([A-Za-z0-9\s\-]{2,30}?)(?:\.|\,|$|\n)",
+        combined_corpus,
+        re.IGNORECASE,
+    )
+    room_or_facility = room_match.group(1).strip() if room_match else None
+
+    # Guided parameters DTO with Manual Staff Verification
     guided_params = PreflightGuidedParams(
         buyer_name=buyer_name,
         vendor_name=vendor_name,
         budget_estimate=budget_estimate,
         delivery_timeline=delivery_timeline,
+        target_dates=target_dates,
+        room_or_facility=room_or_facility,
+        availability_verification="Manual Staff Verification",
         primary_tech=primary_tech,
         compliance_frameworks=detected_compliance,
         sla_target=sla_target,

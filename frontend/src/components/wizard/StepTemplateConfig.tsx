@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { uploadKnowledgeFiles, fetchPreflightBlueprint } from "../../api/client";
+import { uploadKnowledgeFiles, fetchPreflightBlueprint, fetchDynamicGallery, uploadTemplateDoc } from "../../api/client";
 import { useWizardStore } from "../../state/wizardStore";
 import {
   PREBUILT_TEMPLATES_LIST,
+  type DynamicVisualManifest,
   type GuidedParameters,
   type PageLayoutSize,
   type PreflightBlueprintResponse,
@@ -12,14 +13,15 @@ import {
 } from "../../types";
 
 const CATEGORY_TABS: { id: string; label: string }[] = [
-  { id: "ALL", label: "All Templates" },
-  { id: "RFP", label: "RFP" },
-  { id: "RFQ", label: "RFQ" },
-  { id: "RFI", label: "RFI" },
-  { id: "SOW", label: "SOW" },
-  { id: "VENDOR_CONTRACT", label: "Contracts" },
-  { id: "VENDOR_SCORECARD", label: "Scorecards & PO" },
-  { id: "CUSTOM", label: "Custom Builder" },
+  { id: "all", label: "All Templates" },
+  { id: "my_docs", label: "My Docs" },
+  { id: "education", label: "Education" },
+  { id: "business", label: "Business" },
+  { id: "reports_analysis", label: "Reports & Analysis" },
+  { id: "marketing", label: "Marketing" },
+  { id: "career_portfolio", label: "Career & Portfolio" },
+  { id: "legal_forms", label: "Legal & Forms" },
+  { id: "custom", label: "Custom" },
 ];
 
 const COMPLIANCE_OPTIONS = ["SOC 2", "ISO 27001", "GDPR", "HIPAA", "PCI-DSS", "FedRAMP"];
@@ -49,13 +51,49 @@ export function StepTemplateConfig() {
   );
 
   const storeContentDensity = useWizardStore((s) => s.contentDensity);
-  const [activeTab, setActiveTab] = useState<string>("ALL");
+  const [activeTab, setActiveTab] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [dynamicTemplates, setDynamicTemplates] = useState<DynamicVisualManifest[]>([]);
+  const [loadingGallery, setLoadingGallery] = useState(false);
+  const [uploadingTemplateDoc, setUploadingTemplateDoc] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(storeTemplateId || "rfp_enterprise");
   const [procurementDocType, setProcurementDocType] = useState<ProcurementDocType>(storeProcurementDocType || "RFP");
   const [numPages, setNumPages] = useState(storeNumPages || 5);
   const [prompt, setPrompt] = useState(storePrompt || "");
   const [contentDensity, setContentDensity] = useState<"min" | "med" | "max">(storeContentDensity || "med");
   const [previewTemplate, setPreviewTemplate] = useState<TemplateDefinition | null>(null);
+
+  // Load dynamic templates from backend scanner
+  const loadTemplates = async (cat = activeTab, q = searchQuery) => {
+    setLoadingGallery(true);
+    try {
+      const res = await fetchDynamicGallery(cat, q);
+      setDynamicTemplates(res.templates || []);
+    } catch (e) {
+      console.warn("Dynamic gallery load fallback:", e);
+    } finally {
+      setLoadingGallery(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTemplates(activeTab, searchQuery);
+  }, [activeTab, searchQuery]);
+
+  async function handleTemplateDocUpload(file: File) {
+    setUploadingTemplateDoc(true);
+    setError(null);
+    try {
+      const newManifest = await uploadTemplateDoc(file);
+      await loadTemplates(activeTab, searchQuery);
+      setSelectedTemplateId(newManifest.id);
+      useWizardStore.setState({ templateId: newManifest.id });
+    } catch (err: any) {
+      setError("Failed to upload dynamic template: " + (err.message || "Unknown error"));
+    } finally {
+      setUploadingTemplateDoc(false);
+    }
+  }
 
   // GenSpark Blueprint State
   const [analyzingBlueprint, setAnalyzingBlueprint] = useState(false);
@@ -74,20 +112,12 @@ export function StepTemplateConfig() {
   );
   const [slaTarget, setSlaTarget] = useState(storeGuidedParams?.sla_target || "99.9% (Standard)");
 
-  const filteredTemplates = PREBUILT_TEMPLATES_LIST.filter((t) => {
-    if (activeTab === "ALL") return true;
-    if (activeTab === "CUSTOM") return t.category === "CUSTOM";
-    if (activeTab === "VENDOR_SCORECARD") return t.category === "VENDOR_SCORECARD" || t.category === "PURCHASE_ORDER";
-    return t.category === activeTab;
-  });
-
-  const selectedTemplate = PREBUILT_TEMPLATES_LIST.find((t) => t.id === selectedTemplateId) || PREBUILT_TEMPLATES_LIST[0];
-
-  function handleSelectTemplate(tmpl: TemplateDefinition) {
+  function handleSelectTemplate(tmpl: DynamicVisualManifest | TemplateDefinition) {
     setSelectedTemplateId(tmpl.id);
-    if (tmpl.category !== "ALL" && tmpl.category !== "CUSTOM") {
-      setProcurementDocType(tmpl.category as ProcurementDocType);
-      useWizardStore.setState({ procurementDocType: tmpl.category as ProcurementDocType });
+    const cat = tmpl.category.toUpperCase();
+    if (["RFP", "RFQ", "RFI", "SOW", "VENDOR_CONTRACT", "VENDOR_SCORECARD", "PURCHASE_ORDER"].includes(cat)) {
+      setProcurementDocType(cat as ProcurementDocType);
+      useWizardStore.setState({ procurementDocType: cat as ProcurementDocType });
     }
     useWizardStore.setState({ templateId: tmpl.id });
   }
@@ -562,9 +592,16 @@ export function StepTemplateConfig() {
               </div>
 
               <div style={{ padding: "8px 12px", borderRadius: "6px", background: isDarkMode ? "rgba(255,255,255,0.04)" : "#f1f5f9" }}>
-                <span style={{ fontSize: "10px", fontWeight: 600, color: isDarkMode ? "#94a3b8" : "#64748b", textTransform: "uppercase" }}>Target Availability SLA</span>
+                <span style={{ fontSize: "10px", fontWeight: 600, color: isDarkMode ? "#94a3b8" : "#64748b", textTransform: "uppercase" }}>Room / Space & Dates</span>
                 <div style={{ fontSize: "12px", fontWeight: 700, color: isDarkMode ? "#f8fafc" : "#0f172a", marginTop: "2px" }}>
-                  {slaTarget}
+                  {blueprint.guided_params.room_or_facility || "General Facility"} · {blueprint.guided_params.target_dates || deliveryTimeline || "Requested Dates"}
+                </div>
+              </div>
+
+              <div style={{ padding: "8px 12px", borderRadius: "6px", background: isDarkMode ? "rgba(16, 185, 129, 0.1)" : "#ecfdf5", border: isDarkMode ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid #a7f3d0" }}>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: isDarkMode ? "#34d399" : "#059669", textTransform: "uppercase" }}>Availability Check</span>
+                <div style={{ fontSize: "12px", fontWeight: 700, color: isDarkMode ? "#6ee7b7" : "#047857", marginTop: "2px" }}>
+                  📋 Manual Staff Verification
                 </div>
               </div>
 
@@ -643,12 +680,65 @@ export function StepTemplateConfig() {
       {/* 3. Manual Overrides Section (Visible if no blueprint or when expanded) */}
       {(!blueprint || showAdvancedManualConfig) && (
         <div style={{ borderTop: blueprint ? (isDarkMode ? "1px dashed rgba(255,255,255,0.15)" : "1px dashed #cbd5e1") : "none", paddingTop: blueprint ? "20px" : 0 }}>
-          {/* Category Tabs */}
+          {/* Category Tabs & Search & Upload Bar */}
           <div className="field">
-            <label>
-              <span>Select Document Template Category</span>
-            </label>
-            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "8px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px", marginBottom: "8px" }}>
+              <span style={{ fontWeight: 700, fontSize: "13px", color: isDarkMode ? "#f8fafc" : "#0f172a" }}>
+                Template Gallery & Document Presets
+              </span>
+
+              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                <input
+                  type="text"
+                  placeholder="🔍 Search templates..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    padding: "6px 12px",
+                    fontSize: "12px",
+                    borderRadius: "6px",
+                    background: isDarkMode ? "rgba(255,255,255,0.05)" : "#ffffff",
+                    border: isDarkMode ? "1px solid rgba(255,255,255,0.15)" : "1px solid #cbd5e1",
+                    color: isDarkMode ? "#f8fafc" : "#0f172a",
+                    width: "180px",
+                  }}
+                />
+
+                <input
+                  type="file"
+                  id="template-doc-upload"
+                  accept=".docx,.md,.txt"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      handleTemplateDocUpload(e.target.files[0]);
+                      e.target.value = "";
+                    }
+                  }}
+                  style={{ display: "none" }}
+                />
+                <label
+                  htmlFor="template-doc-upload"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "6px 14px",
+                    borderRadius: "6px",
+                    background: isDarkMode ? "rgba(59, 130, 246, 0.2)" : "#eff6ff",
+                    border: isDarkMode ? "1px solid #3b82f6" : "1px solid #93c5fd",
+                    color: isDarkMode ? "#60a5fa" : "#1a73e8",
+                    fontWeight: 700,
+                    fontSize: "12px",
+                    cursor: uploadingTemplateDoc ? "wait" : "pointer",
+                  }}
+                >
+                  {uploadingTemplateDoc ? "Parsing Doc..." : "➕ Add Doc Template (.docx)"}
+                </label>
+              </div>
+            </div>
+
+            {/* Horizontal Category Navigation Bar */}
+            <div style={{ display: "flex", gap: "6px", overflowX: "auto", paddingBottom: "6px" }}>
               {CATEGORY_TABS.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
@@ -657,161 +747,226 @@ export function StepTemplateConfig() {
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
                     style={{
-                      padding: "6px 12px",
+                      padding: "6px 14px",
                       fontSize: "12px",
-                      fontWeight: 600,
-                      borderRadius: "8px",
+                      fontWeight: 700,
+                      borderRadius: "20px",
                       border: "1px solid",
                       borderColor: isActive
                         ? isDarkMode
                           ? "#3b82f6"
                           : "#1a73e8"
                         : isDarkMode
-                        ? "rgba(255,255,255,0.15)"
+                        ? "rgba(255,255,255,0.1)"
                         : "#e2e8f0",
                       background: isActive
                         ? isDarkMode
-                          ? "rgba(59, 130, 246, 0.2)"
-                          : "#e8f0fe"
+                          ? "#ffffff"
+                          : "#1e293b"
                         : isDarkMode
-                        ? "rgba(255,255,255,0.03)"
+                        ? "rgba(255,255,255,0.04)"
                         : "#f8fafc",
-                      color: isActive ? (isDarkMode ? "#60a5fa" : "#1a73e8") : isDarkMode ? "#94a3b8" : "#64748b",
+                      color: isActive ? (isDarkMode ? "#0f172a" : "#ffffff") : isDarkMode ? "#cbd5e1" : "#475569",
                       cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
+                      whiteSpace: "nowrap",
                       transition: "all 0.15s ease",
                     }}
                   >
-                    <span>{tab.label}</span>
+                    {tab.label}
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Prebuilt Templates Cards Grid */}
-          <div className="field" style={{ marginTop: "16px" }}>
-            <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span>Choose Prebuilt Template ({filteredTemplates.length})</span>
-              <span style={{ fontSize: "12px", color: isDarkMode ? "#60a5fa" : "#1a73e8", fontWeight: 600 }}>
-                Selected: {selectedTemplate.title}
-              </span>
-            </label>
-
+          {/* Canva/Pinterest Style Dynamic Template Cards Grid */}
+          <div className="field" style={{ marginTop: "12px" }}>
+            {loadingGallery ? (
+              <div style={{ padding: "40px 20px", textAlign: "center", color: isDarkMode ? "#94a3b8" : "#64748b", fontSize: "13px" }}>
+                ⏳ Scanning and loading dynamic template cards...
+              </div>
+            ) : dynamicTemplates.length === 0 ? (
+              <div style={{ padding: "40px 20px", textAlign: "center", color: isDarkMode ? "#94a3b8" : "#64748b", fontSize: "13px" }}>
+                No templates found matching the current filter. Drop a .docx file above to add one!
+              </div>
+            ) : (
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: "14px",
-                marginTop: "10px",
-                maxHeight: "440px",
+                gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+                gap: "16px",
+                maxHeight: "560px",
                 overflowY: "auto",
-                paddingRight: "6px",
+                paddingRight: "8px",
+                paddingBottom: "8px",
               }}
             >
-              {filteredTemplates.map((tmpl) => {
+              {dynamicTemplates.map((tmpl) => {
                 const isSelected = selectedTemplateId === tmpl.id;
+                const isBlank = tmpl.is_blank_doc;
+                const isTall = tmpl.aspect_ratio === "tall_poster";
+                const isLandscape = tmpl.aspect_ratio === "landscape_card";
+
                 return (
                   <div
                     key={tmpl.id}
                     onClick={() => handleSelectTemplate(tmpl)}
                     style={{
-                      padding: "14px",
-                      borderRadius: "10px",
+                      borderRadius: "14px",
+                      overflow: "hidden",
                       border: isSelected
                         ? isDarkMode
-                          ? "2px solid #3b82f6"
-                          : "2px solid #1a73e8"
+                          ? "2.5px solid #38bdf8"
+                          : "2.5px solid #2563eb"
                         : isDarkMode
                         ? "1px solid rgba(255,255,255,0.1)"
                         : "1px solid #e2e8f0",
-                      background: isSelected
-                        ? isDarkMode
-                          ? "rgba(59, 130, 246, 0.15)"
-                          : "rgba(232, 240, 254, 0.8)"
-                        : isDarkMode
-                        ? "rgba(255,255,255,0.03)"
-                        : "#ffffff",
+                      background: isDarkMode ? "#131b2e" : "#ffffff",
                       boxShadow: isSelected
-                        ? isDarkMode
-                          ? "0 4px 14px rgba(59, 130, 246, 0.2)"
-                          : "0 4px 14px rgba(26, 115, 232, 0.15)"
-                        : "none",
+                        ? "0 8px 24px rgba(37, 99, 235, 0.3)"
+                        : "0 4px 12px rgba(0, 0, 0, 0.05)",
                       cursor: "pointer",
                       display: "flex",
                       flexDirection: "column",
-                      justifyContent: "space-between",
-                      transition: "all 0.15s ease",
+                      gridRow: isTall ? "span 2" : "span 1",
+                      transition: "transform 0.15s ease, box-shadow 0.15s ease",
+                      position: "relative",
                     }}
                   >
-                    <div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
-                        <span style={{ fontSize: "11px", fontWeight: 800, padding: "3px 8px", borderRadius: "4px", background: isDarkMode ? "rgba(59, 130, 246, 0.2)" : "#e0f2fe", color: isDarkMode ? "#60a5fa" : "#0284c7", letterSpacing: "0.5px" }}>
-                          {tmpl.icon}
-                        </span>
-                        <span
-                          style={{
-                            fontSize: "10px",
-                            fontWeight: 700,
-                            padding: "2px 8px",
-                            borderRadius: "10px",
-                            background: isDarkMode ? "rgba(255,255,255,0.1)" : "#f1f5f9",
-                            color: isDarkMode ? "#cbd5e1" : "#475569",
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          {tmpl.category}
-                        </span>
-                      </div>
+                    {/* Visual Cover Header */}
+                    <div
+                      style={{
+                        height: isBlank ? "220px" : isTall ? "360px" : isLandscape ? "140px" : "190px",
+                        background: tmpl.theme?.gradient_css || "linear-gradient(135deg, #2563eb 0%, #1e40af 100%)",
+                        padding: "16px",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: isBlank ? "center" : "space-between",
+                        alignItems: isBlank ? "center" : "flex-start",
+                        position: "relative",
+                        color: "#ffffff",
+                      }}
+                    >
+                      {/* Badge / Tag */}
+                      {!isBlank && tmpl.theme?.badge_text && (
+                        <div style={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "center" }}>
+                          <span
+                            style={{
+                              fontSize: "10px",
+                              fontWeight: 800,
+                              textTransform: "uppercase",
+                              padding: "2px 8px",
+                              borderRadius: "12px",
+                              background: "rgba(0, 0, 0, 0.35)",
+                              backdropFilter: "blur(4px)",
+                              color: "#ffffff",
+                              letterSpacing: "0.5px",
+                            }}
+                          >
+                            {tmpl.theme.badge_text}
+                          </span>
 
-                      <h4
-                        style={{
-                          margin: "0 0 4px 0",
-                          fontSize: "14px",
-                          fontWeight: 700,
-                          color: isDarkMode ? "#f8fafc" : "#1e293b",
-                        }}
-                      >
-                        {tmpl.title}
-                      </h4>
+                          {tmpl.is_custom && (
+                            <span
+                              style={{
+                                fontSize: "9px",
+                                fontWeight: 800,
+                                padding: "2px 6px",
+                                borderRadius: "4px",
+                                background: "#10b981",
+                                color: "#ffffff",
+                              }}
+                            >
+                              AUTO-PARSED
+                            </span>
+                          )}
+                        </div>
+                      )}
 
-                      <p
-                        style={{
-                          margin: "0 0 10px 0",
-                          fontSize: "12px",
-                          color: isDarkMode ? "#94a3b8" : "#64748b",
-                          lineHeight: "1.4",
-                        }}
-                      >
-                        {tmpl.description}
-                      </p>
+                      {/* Blank Doc Center Plus Icon */}
+                      {isBlank ? (
+                        <div style={{ textAlign: "center" }}>
+                          <div style={{ fontSize: "36px", fontWeight: 300, marginBottom: "8px", opacity: 0.7 }}>+</div>
+                          <div style={{ fontSize: "14px", fontWeight: 700, opacity: 0.8 }}>Blank document</div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div
+                            style={{
+                              fontSize: isTall ? "20px" : "15px",
+                              fontWeight: 800,
+                              lineHeight: "1.2",
+                              letterSpacing: isTall ? "0.5px" : "normal",
+                              textShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                              marginBottom: "4px",
+                            }}
+                          >
+                            {tmpl.title}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "11px",
+                              opacity: 0.9,
+                              fontWeight: 500,
+                              lineHeight: "1.3",
+                            }}
+                          >
+                            {tmpl.subtitle}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
-                    <div>
-                      {/* Tone Badge */}
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "4px",
-                          fontSize: "11px",
-                          fontWeight: 600,
-                          color: isDarkMode ? "#38bdf8" : "#0284c7",
-                          marginBottom: "8px",
-                        }}
-                      >
-                        <span>Tone:</span>
-                        <span>{tmpl.tone}</span>
+                    {/* Card Body & Footer */}
+                    <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: "6px", flex: 1, justifyContent: "space-between" }}>
+                      <div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontSize: "11px", fontWeight: 700, color: isDarkMode ? "#94a3b8" : "#64748b" }}>
+                            {tmpl.sections ? `${tmpl.sections.length} Sections` : "Standard Outline"}
+                          </span>
+                          {isSelected && (
+                            <span style={{ fontSize: "11px", fontWeight: 800, color: "#10b981", display: "flex", alignItems: "center", gap: "4px" }}>
+                              ✓ Active
+                            </span>
+                          )}
+                        </div>
+
+                        {tmpl.tags && tmpl.tags.length > 0 && (
+                          <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginTop: "6px" }}>
+                            {tmpl.tags.slice(0, 3).map((tag, i) => (
+                              <span
+                                key={i}
+                                style={{
+                                  fontSize: "9px",
+                                  fontWeight: 600,
+                                  padding: "2px 6px",
+                                  borderRadius: "4px",
+                                  background: isDarkMode ? "rgba(255,255,255,0.05)" : "#f1f5f9",
+                                  color: isDarkMode ? "#cbd5e1" : "#475569",
+                                }}
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "6px", borderTop: isDarkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid #f1f5f9" }}>
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setPreviewTemplate(tmpl);
+                            setPreviewTemplate({
+                              id: tmpl.id,
+                              title: tmpl.title,
+                              category: "CUSTOM",
+                              description: tmpl.subtitle,
+                              tone: "Structured",
+                              toneDescription: "Dynamic generated template",
+                              icon: "📄",
+                              sections: tmpl.sections || [],
+                            });
                           }}
                           style={{
                             background: "none",
@@ -824,29 +979,35 @@ export function StepTemplateConfig() {
                             textDecoration: "underline",
                           }}
                         >
-                          View Outlines ({tmpl.sections.length})
+                          View Outlines
                         </button>
 
-                        {isSelected && (
-                          <span
-                            style={{
-                              fontSize: "11px",
-                              fontWeight: 700,
-                              color: isDarkMode ? "#34d399" : "#059669",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "3px",
-                            }}
-                          >
-                            ✓ Selected
-                          </span>
-                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectTemplate(tmpl);
+                          }}
+                          style={{
+                            padding: "4px 10px",
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            borderRadius: "6px",
+                            border: "none",
+                            background: isSelected ? (isDarkMode ? "#38bdf8" : "#2563eb") : (isDarkMode ? "rgba(255,255,255,0.08)" : "#e2e8f0"),
+                            color: isSelected ? "#ffffff" : isDarkMode ? "#cbd5e1" : "#334155",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {isSelected ? "Selected" : "Use Template"}
+                        </button>
                       </div>
                     </div>
                   </div>
                 );
               })}
             </div>
+            )}
           </div>
 
           {/* Grid: Layout Size & Num Pages */}

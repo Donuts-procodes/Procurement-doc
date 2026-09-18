@@ -1208,7 +1208,51 @@ MASTER_PROCUREMENT_TAXONOMY: list[SectionSchema] = [
 # ============================================================================
 
 def get_template_by_id(template_id: str) -> TemplateMetaData:
-    """Retrieve a template by ID, falling back to rfp_enterprise."""
+    """Retrieve a template by ID, checking dynamic scanner first, falling back to rfp_enterprise."""
+    if template_id in PREBUILT_TEMPLATES:
+        return PREBUILT_TEMPLATES[template_id]
+
+    try:
+        from app.services.dynamic_template_scanner import DynamicTemplateScanner
+        dynamic_manifests = DynamicTemplateScanner.scan_storage_directory()
+        for dm in dynamic_manifests:
+            if dm.id == template_id:
+                # Convert DynamicVisualManifest to TemplateMetaData on the fly
+                sections = [
+                    SectionSchema(
+                        section_id=f"dyn_{i}_{s.title.lower()[:15].replace(' ', '_')}",
+                        title=s.title,
+                        section_type=s.section_type,
+                        guidance=s.guidance,
+                        page_estimate=int(s.estimated_pages or 1),
+                    )
+                    for i, s in enumerate(dm.sections)
+                ]
+                # Register sections in SECTION_REGISTRY dynamically
+                sec_ids = []
+                for s in sections:
+                    SECTION_REGISTRY[s.section_id] = s
+                    sec_ids.append(s.section_id)
+
+                cat_val = dm.category.value.upper()
+                try:
+                    p_cat = ProcurementDocType(cat_val)
+                except ValueError:
+                    p_cat = ProcurementDocType.RFP
+
+                return TemplateMetaData(
+                    id=dm.id,
+                    category=p_cat,
+                    title=dm.title,
+                    description=dm.subtitle,
+                    tone="Structured",
+                    tone_description="Dynamically parsed procurement template",
+                    icon="📄",
+                    section_ids=sec_ids,
+                )
+    except Exception:
+        pass
+
     return PREBUILT_TEMPLATES.get(template_id, PREBUILT_TEMPLATES["rfp_enterprise"])
 
 
@@ -1218,11 +1262,15 @@ def get_procurement_sections(
     num_pages: int | None = None,
 ) -> list[SectionSchema]:
     """
-    Get sections for a procurement document with ID-based deduplication and page expansion.
+    Get sections for a procurement document with dynamic scanner introspection, ID deduplication, and page expansion.
     Returns list[SectionSchema] for complete downstream compatibility.
     """
-    if template_id and template_id in PREBUILT_TEMPLATES:
-        base_sections = list(PREBUILT_TEMPLATES[template_id].sections)
+    if template_id:
+        tmpl = get_template_by_id(template_id)
+        if tmpl and tmpl.sections:
+            base_sections = list(tmpl.sections)
+        else:
+            base_sections = list(PROCUREMENT_TEMPLATES.get(doc_type, PROCUREMENT_TEMPLATES[ProcurementDocType.RFP]))
     else:
         base_sections = list(PROCUREMENT_TEMPLATES.get(doc_type, PROCUREMENT_TEMPLATES[ProcurementDocType.RFP]))
 

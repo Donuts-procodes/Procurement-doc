@@ -244,3 +244,24 @@ export async function streamTargetedSelectionEdit(
   }
 }
 
+export async function fetchDynamicGallery(category = "all", search = ""): Promise<{
+  categories: Array<{ id: string; label: string }>;
+  total_count: number;
+  templates: import("../types").DynamicVisualManifest[];
+}> {
+  const query = new URLSearchParams();
+  if (category && category !== "all") query.set("category", category);
+  if (search) query.set("search", search);
+  const qs = query.toString() ? `?${query.toString()}` : "";
+  const { data } = await client.get(`/templates/gallery${qs}`);
+  return data;
+}
+
+export async function uploadTemplateDoc(file: File): Promise<import("../types").DynamicVisualManifest> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const { data } = await client.post("/templates/upload-doc", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data;
+}
